@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personnel & Conduct Registry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">HR</div>
+      <h1>Personnel &amp;<br>Conduct Registry</h1>
+      <p>Employee Records System</p>
+    </div>
+    <nav>
+      <div class="nav-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-view="employees">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/><circle cx="17.5" cy="7.5" r="2.5"/><path d="M21.5 20c0-2.9-1.9-5.2-4.5-5.9"/></svg>
+        Employees
+      </div>
+      <div class="nav-section-label">Conduct</div>
+      <div class="nav-item" data-view="file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+        File a Case
+      </div>
+      <div class="nav-item" data-view="cases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
+        Case Records
+      </div>
+      <div class="nav-item" data-view="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+        Violation Analytics
+      </div>
+      <div class="nav-item" data-view="violations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 4.5v6c0 5-3.8 8.6-9 9.5-5.2-.9-9-4.5-9-9.5v-6L12 2z"/><path d="M12 8v5M12 16h.01"/></svg>
+        Violation Reference
+      </div>
+    </nav>
+    <div class="sidebar-foot">
+      Data sourced from the company masterlist.<br>Case records saved to this device.
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="topbar-title">Dashboard</h2>
+        <div class="sub" id="topbar-sub">Overview of personnel and active disciplinary matters</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn ghost" id="export-all-btn" title="Download all system data as an organized Excel workbook (bundled with attachments as a ZIP when documents are attached)">⇩ Download All Data</button>
+        <div class="date-pill" id="today-pill">—</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Total Employees</div><div class="num" id="stat-total-emp">0</div><div class="foot">Across all departments</div></div>
+        <div class="stat-card"><div class="label">Active Cases</div><div class="num" id="stat-active-cases">0</div><div class="foot">Served or ongoing</div></div>
+        <div class="stat-card"><div class="label">Employees With Violations</div><div class="num" id="stat-emp-viol">0</div><div class="foot">Unique individuals on record</div></div>
+        <div class="stat-card"><div class="label">Resolved Cases</div><div class="num" id="stat-resolved">0</div><div class="foot">Marked closed</div></div>
+      </div>
+
+      <div class="panel-grid">
+        <div class="panel">
+          <h3>Headcount by Department</h3>
+          <div id="dept-breakdown"></div>
+        </div>
+        <div class="panel">
+          <h3>Recent Case Activity</h3>
+          <div id="recent-cases"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMPLOYEES -->
+    <section class="view" id="view-employees">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <input type="text" id="emp-search" placeholder="Search employee name or ID…">
+        </div>
+        <select id="emp-dept-filter"><option value="">All Departments</option></select>
+        <select id="emp-status-filter">
+          <option value="">All Status</option>
+        </select>
+        <button class="btn" id="add-emp-btn" style="white-space:nowrap;">+ Add Employee</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Employee</th><th>Department</th><th>Position</th><th>Date Hired</th><th>Status</th><th>Violations</th><th></th></tr></thead>
+            <tbody id="emp-table-body"></tbody>
+          </table>
+        </div>
+        <div class="table-foot" id="emp-table-foot"></div>
+      </div>
+    </section>
+
+    <!-- ADD / EDIT EMPLOYEE MODAL -->
+    <div class="modal-overlay" id="emp-modal-overlay">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3 id="emp-modal-title">Add Employee</h3>
+          <span class="modal-x" id="emp-modal-close">✕</span>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Employee ID</label>
+              <input type="text" id="modal-emp-id" placeholder="Auto-generated if left blank">
+            </div>
+            <div class="field">
+              <label>Full Name</label>
+              <input type="text" id="modal-emp-name" placeholder="Last, First Middle">
+            </div>
+            <div class="field">
+              <label>Department</label>
+              <input type="text" id="modal-emp-dept" list="dept-datalist" placeholder="e.g. FINANCE">
+              <datalist id="dept-datalist"></datalist>
+            </div>
+            <div class="field">
+              <label>Position</label>
+              <input type="text" id="modal-emp-position" placeholder="e.g. Checker">
+            </div>
+            <div class="field">
+              <label>Date Hired</label>
+              <input type="date" id="modal-emp-hired">
+            </div>
+            <div class="field">
+              <label>Employment Status</label>
+              <select id="modal-emp-status"></select>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="emp-modal-cancel">Cancel</button>
+          <button class="btn" id="emp-modal-save">Save Employee</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT EMPLOYEE MODAL -->
+    <div class="modal-overlay" id="status-modal-overlay">
+      <div class="modal-box" style="max-width:480px;">
+        <div class="modal-head">
+          <h3>Edit Employee</h3>
+          <span class="modal-x" id="status-modal-close">✕</span>
+        </div>
+        <div class="modal-body">
+          <div class="emp-id" id="status-modal-emp-name" style="font-size:14px; color:var(--ink); font-weight:600; margin-bottom:14px;"></div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Department</label>
+              <input type="text" id="modal-edit-dept" list="dept-datalist" placeholder="e.g. FINANCE">
+            </div>
+            <div class="field">
+              <label>Position</label>
+              <input type="text" id="modal-edit-position" placeholder="e.g. Checker">
+            </div>
+            <div class="field full">
+              <label>Employment Status</label>
+              <select id="modal-status-select"></select>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="status-modal-cancel">Cancel</button>
+          <button class="btn" id="status-modal-save">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHANGE CASE STATUS MODAL -->
+    <div class="modal-overlay" id="case-status-modal-overlay">
+      <div class="modal-box" style="max-width:420px;">
+        <div class="modal-head">
+          <h3>Update Case Status</h3>
+          <span class="modal-x" id="case-status-modal-close">✕</span>
+        </div>
+        <div class="modal-body">
+          <div class="emp-id" id="case-status-modal-info" style="font-size:14px; color:var(--ink); font-weight:600; margin-bottom:14px;"></div>
+          <div class="field">
+            <label>New Status</label>
+            <select id="modal-case-status-select">
+              <option value="Served">Notice Served</option>
+              <option value="Ongoing">Case Ongoing</option>
+              <option value="Closed">Case Closed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="case-status-modal-cancel">Cancel</button>
+          <button class="btn" id="case-status-modal-save">Update Status</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEE VIOLATION HISTORY MODAL -->
+    <div class="modal-overlay" id="emp-viol-modal-overlay">
+      <div class="modal-box" style="max-width:600px;">
+        <div class="modal-head">
+          <h3 id="emp-viol-modal-title">Violation History</h3>
+          <span class="modal-x" id="emp-viol-modal-close">✕</span>
+        </div>
+        <div class="modal-body" style="padding-bottom:22px;">
+          <div id="emp-viol-modal-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CASE ATTACHMENTS MODAL -->
+    <div class="modal-overlay" id="case-attach-modal-overlay">
+      <div class="modal-box" style="max-width:520px;">
+        <div class="modal-head">
+          <h3 id="case-attach-modal-title">Case Attachments</h3>
+          <span class="modal-x" id="case-attach-modal-close">✕</span>
+        </div>
+        <div class="modal-body" style="padding-bottom:22px;">
+          <div class="attach-list" id="case-attach-modal-list"></div>
+          <label class="file-drop" id="case-attach-modal-drop" style="margin-top:14px;">
+            ⇪ Click to add more documents to this case
+            <input type="file" id="case-attach-modal-input" multiple>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILE A CASE -->
+    <section class="view" id="view-file">
+      <div class="panel" style="max-width:820px;">
+        <h3>New Disciplinary Record</h3>
+        <div class="form-grid">
+          <div class="field full autocomplete" id="emp-ac-wrap">
+            <label>Employee</label>
+            <input type="text" id="case-emp-search" placeholder="Start typing an employee name…" autocomplete="off">
+            <div class="ac-list" id="emp-ac-list"></div>
+            <div class="selected-chip" id="emp-chip">
+              <span id="emp-chip-text"></span>
+              <span class="x" id="emp-chip-clear">✕</span>
+            </div>
+          </div>
+
+          <div class="field full autocomplete" id="viol-ac-wrap">
+            <label>Violation</label>
+            <input type="text" id="case-viol-search" placeholder="Start typing a violation, e.g. tardiness…" autocomplete="off">
+            <div class="ac-list" id="viol-ac-list"></div>
+            <div class="selected-chip" id="viol-chip">
+              <span id="viol-chip-text"></span>
+              <span class="x" id="viol-chip-clear">✕</span>
+            </div>
+            <div class="sev-note" id="viol-sev-note"></div>
+          </div>
+
+          <div class="field">
+            <label>Incident Date</label>
+            <input type="date" id="case-date">
+          </div>
+          <div class="field">
+            <label>Recorded By</label>
+            <input type="text" id="case-recorder" placeholder="Your name">
+          </div>
+
+          <div class="field full">
+            <label>Incident Details</label>
+            <textarea id="case-details" placeholder="Describe what happened…"></textarea>
+          </div>
+
+          <div class="field full">
+            <label>Notice Status</label>
+            <div class="status-select" id="case-status-select">
+              <button type="button" class="served" data-status="Served">Notice Served</button>
+              <button type="button" class="ongoing" data-status="Ongoing">Case Ongoing</button>
+              <button type="button" class="closed" data-status="Closed">Case Closed</button>
+            </div>
+          </div>
+
+          <div class="field full">
+            <label>Supporting Documents (optional)</label>
+            <label class="file-drop" id="case-attach-drop">
+              ⇪ Click to upload incident report, photos, memo, or other files (PDF, DOCX, JPG, PNG, etc.)
+              <input type="file" id="case-attach-input" multiple>
+            </label>
+            <div class="attach-list" id="case-attach-list"></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="case-clear-btn">Clear Form</button>
+          <button class="btn" id="case-submit-btn">Save Record</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CASE RECORDS -->
+    <section class="view" id="view-cases">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <input type="text" id="case-search" placeholder="Search by employee name…">
+        </div>
+        <div class="filter-pills" id="case-status-pills">
+          <div class="pill active" data-status="">All</div>
+          <div class="pill" data-status="Served">Served</div>
+          <div class="pill" data-status="Ongoing">Ongoing</div>
+          <div class="pill" data-status="Closed">Closed</div>
+        </div>
+      </div>
+      <div id="cases-table-wrap"></div>
+    </section>
+
+    <!-- VIOLATION ANALYTICS -->
+    <section class="view" id="view-analytics">
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="label">Total Violations (All-Time)</div>
+          <div class="num" id="an-total">0</div>
+          <div class="foot" id="an-total-foot">0 cases filed</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Active Cases</div>
+          <div class="num" id="an-active">0</div>
+          <div class="foot">Served or under investigation</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Resolved Cases</div>
+          <div class="num" id="an-resolved">0</div>
+          <div class="foot" id="an-resolved-foot">0% resolution rate</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <h3 style="display:flex; align-items:center; justify-content:space-between; border-bottom:none; padding-bottom:0; margin-bottom:14px;">
+          Violations Over Time
+        </h3>
+        <div class="toolbar" style="margin-bottom:16px; align-items:center;">
+          <div class="filter-pills" id="an-period-pills">
+            <div class="pill active" data-period="daily">Daily</div>
+            <div class="pill" data-period="monthly">Monthly</div>
+          </div>
+          <div style="flex:1; min-width:160px; max-width:220px;">
+            <input type="month" id="an-month-search" placeholder="Jump to month…">
+          </div>
+          <button class="btn ghost" id="an-month-clear" style="padding:10px 16px;">Clear</button>
+        </div>
+        <div class="table-wrap" style="box-shadow:none; border:1px solid var(--line);">
+          <div class="table-scroll" style="max-height:340px;">
+            <table>
+              <thead><tr><th>Period</th><th>Violations</th><th>Served</th><th>Ongoing</th><th>Closed</th><th>Resolved %</th></tr></thead>
+              <tbody id="an-time-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <h3 style="border-bottom:none; padding-bottom:0; margin-bottom:14px;">Violations by Employee</h3>
+        <div class="table-wrap" style="box-shadow:none; border:1px solid var(--line);">
+          <div class="table-scroll" style="max-height:340px;">
+            <table>
+              <thead><tr><th>Employee</th><th>Department</th><th>Total Cases</th><th>Most Recent Violation</th><th>Latest Status</th></tr></thead>
+              <tbody id="an-emp-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 style="border-bottom:none; padding-bottom:0; margin-bottom:14px;">Violations by Category</h3>
+        <div class="table-wrap" style="box-shadow:none; border:1px solid var(--line);">
+          <div class="table-scroll" style="max-height:340px;">
+            <table>
+              <thead><tr><th>Category</th><th>Cases</th><th>Most Common Violation</th><th>Dominant Severity</th></tr></thead>
+              <tbody id="an-cat-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIOLATION REFERENCE -->
+    <section class="view" id="view-violations">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <input type="text" id="viol-search" placeholder="Search violation, category, or severity…">
+        </div>
+        <div class="lang-toggle-wrap" id="viol-lang-toggle-wrap" title="Show Tagalog translations">
+          <span class="lang-toggle-label">EN</span>
+          <label class="lang-switch">
+            <input type="checkbox" id="viol-lang-toggle">
+            <span class="lang-switch-slider"></span>
+          </label>
+          <span class="lang-toggle-label">TL</span>
+        </div>
+        <button class="btn ghost" id="upload-viol-btn">⇪ Upload from Excel</button>
+        <input type="file" id="viol-file-input" accept=".xlsx,.xls,.csv" style="display:none;">
+        <button class="btn" id="add-viol-btn">+ Add Violation</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead><tr id="viol-thead-row"><th>Category</th><th>Violation</th><th>Description</th><th>Severity</th><th>Recommended Action</th><th></th></tr></thead>
+            <tbody id="viol-table-body"></tbody>
+          </table>
+        </div>
+        <div class="table-foot" id="viol-table-foot"></div>
+      </div>
+    </section>
+
+    <!-- ADD VIOLATION MODAL -->
+    <div class="modal-overlay" id="viol-modal-overlay">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3>Add Violation</h3>
+          <span class="modal-x" id="viol-modal-close">✕</span>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Category</label>
+              <input type="text" id="modal-viol-category" placeholder="e.g. Attendance">
+            </div>
+            <div class="field">
+              <label>Severity</label>
+              <select id="modal-viol-severity">
+                <option value="Minor">Minor</option>
+                <option value="Major">Major</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Violation Name</label>
+              <input type="text" id="modal-viol-name" placeholder="e.g. Habitual Tardiness">
+            </div>
+            <div class="field full">
+              <label>Description</label>
+              <textarea id="modal-viol-desc" placeholder="Describe the violation…"></textarea>
+            </div>
+            <div class="field full">
+              <label>Recommended Action</label>
+              <input type="text" id="modal-viol-action" placeholder="e.g. Written warning">
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="viol-modal-cancel">Cancel</button>
+          <button class="btn" id="viol-modal-save">Save Violation</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script id="employees-data" type="application/json">[{"id":"190124","name":"Arcega, Crisanto Orbina","dept":"P&F","position":"Property and Facilities Supervisor","hired":"2011-01-01","status":"REGULAR"},{"id":"190191","name":"Jimenez, Jerome Patrick Tagnipez","dept":"PLANNING","position":"Checker","hired":"2016-06-11","status":"REGULAR"},{"id":"190192","name":"Cabrera, Roberth Manalo","dept":"BROILER","position":"Broiler Production Supervisor","hired":"2016-06-20","status":"REGULAR"},{"id":"190128","name":"Mejos, Anna Joy Geda","dept":"MANAGER/HEAD","position":"Property and Facilities Manager","hired":"2017-06-13","status":"REGULAR"},{"id":"190195","name":"Lingon, Gilbert","dept":"BROILER","position":"Farm Head","hired":"2018-09-05","status":"REGULAR"},{"id":"190209","name":"Mojica, Jeffrey Calumpang","dept":"MANAGER/HEAD","position":"VP operations","hired":"2018-10-01","status":"REGULAR"},{"id":"190035","name":"Areja, Nonica Crisostomo","dept":"FINANCE","position":"Revenue & Inventory Supervisor","hired":"2019-04-22","status":"REGULAR"},{"id":"19070498","name":"Natividad, Jomar Mapacpac","dept":"PLANNING","position":"Checker","hired":"2019-07-03","status":"REGULAR"},{"id":"2011908351","name":"Tabaque, Lesther Rubino","dept":"P&F","position":"Property and Facilities Supervisor","hired":"2019-08-13","status":"REGULAR"},{"id":"102024141","name":"Umali, Sammy Pacia","dept":"LOGISTICS","position":"Logistic Supervisor","hired":"2019-11-25","status":"REGULAR"},{"id":"203201190","name":"Labrador, Garry Marindogue","dept":"BROILER","position":"Farm Head","hired":"2020-01-22","status":"REGULAR"},{"id":"190237","name":"Erica, Aiko Marie Marfil","dept":"SALES","position":"Sales Executive","hired":"2020-03-16","status":"REGULAR"},{"id":"190355","name":"Areja, Leonisa Guevarra","dept":"BROILER","position":"Farm Liaison Officer","hired":"2021-04-19","status":"REGULAR"},{"id":"521112094","name":"Ramirez, Kenneth Jasper Gavica","dept":"LOGISTICS","position":"HELPER","hired":"2021-11-09","status":"REGULAR"},{"id":"220249","name":"Alfonso, Romiguel Toreña","dept":"FARMS","position":"Flockman","hired":"2022-02-24","status":"REGULAR"},{"id":"220354","name":"Muyco, Robert Lopez","dept":"FARMS","position":"Flockman","hired":"2022-03-09","status":"REGULAR"},{"id":"220364","name":"Saldaña, Nestor Remoreras","dept":"SALES","position":"Sales Executive","hired":"2022-04-01","status":"REGULAR"},{"id":"220487","name":"Concha, Adrian Rosalan","dept":"FARMS","position":"Flockman","hired":"2022-04-23","status":"REGULAR"},{"id":"220620","name":"Lavado, Dindo N/A","dept":"FARMS","position":"Flockman","hired":"2022-06-16","status":"REGULAR"},{"id":"220735","name":"Lacaba, Grace Rhealyn Lato","dept":"SALES","position":"Sales Executive","hired":"2022-07-25","status":"REGULAR"},{"id":"220844","name":"Osenia, Christopher Villanueva","dept":"WAREHOUSE","position":"Warehouse Lead/ Invoicer (AM)","hired":"2022-07-27","status":"REGULAR"},{"id":"220864","name":"Soliman, Jan Carlo Aguila","dept":"LOGISTICS","position":"HELPER","hired":"2022-08-23","status":"REGULAR"},{"id":"220982","name":"Poso, Jerico Atienza","dept":"PLANNING","position":"Checker","hired":"2022-09-13","status":"REGULAR"},{"id":"221096","name":"Pongan, Arvin Jason Enriquez","dept":"LOGISTICS","position":"HELPER","hired":"2022-10-17","status":"REGULAR"},{"id":"221104","name":"Rosales, Neoglen Magsumbol","dept":"LOGISTICS","position":"DRIVER","hired":"2022-11-17","status":"REGULAR"},{"id":"221210","name":"Salvador, Adrian Villanueva","dept":"LOGISTICS","position":"HELPER","hired":"2022-12-03","status":"REGULAR"},{"id":"221212","name":"Borromeo, Pablo Jr. Escape","dept":"LOGISTICS","position":"HELPER","hired":"2022-12-05","status":"REGULAR"},{"id":"221219","name":"Pangan, Jessie Flores","dept":"LOGISTICS","position":"HELPER","hired":"2022-12-07","status":"REGULAR"},{"id":"221218","name":"Solison, Ramiro Orutia","dept":"LOGISTICS","position":"HELPER","hired":"2022-12-08","status":"REGULAR"},{"id":"230194","name":"Binay, Charisse Lenette Evangelista","dept":"PROCUREMENT","position":"","hired":"2023-01-01","status":"REGULAR"},{"id":"230133","name":"Granada, Kenneth Caro","dept":"P&F","position":"Farm Maintenance Staff","hired":"2023-01-30","status":"REGULAR"},{"id":"230246","name":"Sarmiento, Regin Guevarra","dept":"LOGISTICS","position":"DRIVER","hired":"2023-02-07","status":"REGULAR"},{"id":"230480","name":"Casimiro, Joseph Milbert Jumawan","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2023-04-11","status":"REGULAR"},{"id":"230481","name":"Almatsa, Mark Louie Martinez","dept":"LOGISTICS","position":"DRIVER","hired":"2023-04-17","status":"REGULAR"},{"id":"230507","name":"Cabrega, Michael Casas","dept":"FURTHER","position":"Further Processing Supervisor","hired":"2023-05-08","status":"REGULAR"},{"id":"230521","name":"Brucelo Jr, Jerry Cortez","dept":"FARMS","position":"Flockman","hired":"2023-05-19","status":"REGULAR"},{"id":"230522","name":"Poral, Anthony James Bayani","dept":"SALES","position":"Sales Coordinator","hired":"2023-05-26","status":"REGULAR"},{"id":"230630","name":"Paz, Reymond Gonzales","dept":"SALES","position":"Sales Executive","hired":"2023-05-26","status":"REGULAR"},{"id":"230631","name":"Sombilla, Charmaine Monteagudo","dept":"DRESSING PLANT","position":"Production Supervisor","hired":"2023-05-31","status":"REGULAR"},{"id":"230632","name":"Villanueva, John Mark Paiton","dept":"LOGISTICS","position":"HELPER","hired":"2023-06-05","status":"REGULAR"},{"id":"230260","name":"Codera, Art Vincent Ramos","dept":"FINANCE","position":"Revenue & Inventory Supervisor","hired":"2023-07-25","status":"REGULAR"},{"id":"230877","name":"Rosales, Ron Kyle Castro","dept":"FARMS","position":"Flockman","hired":"2023-08-13","status":"REGULAR"},{"id":"230876","name":"Alejandre, Arwin Marasigan","dept":"LOGISTICS","position":"HELPER","hired":"2023-08-14","status":"REGULAR"},{"id":"230886","name":"Comia, Ma. Teresa Conese","dept":"FINANCE","position":"Plant Acctg Assistant","hired":"2023-09-01","status":"REGULAR"},{"id":"231009","name":"Valdez, Ryan Rendon","dept":"LOGISTICS","position":"HELPER","hired":"2023-10-22","status":"REGULAR"},{"id":"231010","name":"Mati-ong, Marlon Catchumbo","dept":"LOGISTICS","position":"DRIVER","hired":"2023-10-22","status":"REGULAR"},{"id":"231014","name":"Alvarez, Jimmy Salim","dept":"FARMS","position":"Flockman","hired":"2023-10-22","status":"REGULAR"},{"id":"231017","name":"Lasala, Arnel Agorita","dept":"FARMS","position":"Flockman","hired":"2023-11-04","status":"REGULAR"},{"id":"102024519","name":"Caliao, Rodmel Amaro","dept":"LOGISTICS","position":"DRIVER","hired":"2024-01-01","status":"REGULAR"},{"id":"231134","name":"Aranillo, Rodel Calim","dept":"BROILER","position":"Farm Head","hired":"2024-01-05","status":"REGULAR"},{"id":"231143","name":"Pedido, Jhonar Corcilles","dept":"FARMS","position":"Flockman","hired":"2024-01-19","status":"REGULAR"},{"id":"231145","name":"Asutilla, Richard Mejorada","dept":"FARMS","position":"Flockman","hired":"2024-01-20","status":"REGULAR"},{"id":"240253","name":"Lopez, Moreto Centino","dept":"FARMS","position":"Flockman","hired":"2024-01-30","status":"REGULAR"},{"id":"240427","name":"Quian, Arcel Recuyo","dept":"P&F","position":"Maintenance Staff","hired":"2024-04-19","status":"REGULAR"},{"id":"240428","name":"Espina, Jeffrey Alcantara","dept":"LOGISTICS","position":"HELPER","hired":"2024-04-22","status":"REGULAR"},{"id":"240665","name":"Bautista , Nina Frances Castro","dept":"MANAGER/HEAD","position":"Sales & Business Devt Manager","hired":"2024-05-01","status":"REGULAR"},{"id":"240529","name":"Merene, Angelo Lloren","dept":"FARMS","position":"Flockman","hired":"2024-05-06","status":"REGULAR"},{"id":"240533","name":"Carada, Melvin Manjares","dept":"LOGISTICS","position":"HELPER","hired":"2024-05-08","status":"REGULAR"},{"id":"230884","name":"Gallasa, Risky Dela Cruz","dept":"FARMS","position":"Flockman","hired":"2024-05-12","status":"REGULAR"},{"id":"240541","name":"Barrameda, Jacob Villanueva","dept":"LOGISTICS","position":"HELPER","hired":"2024-05-14","status":"REGULAR"},{"id":"240542","name":"Mendez, Renato Basaya","dept":"P&F","position":"Maintenance Staff","hired":"2024-05-20","status":"REGULAR"},{"id":"240657","name":"Diesta, John N/A","dept":"LOGISTICS","position":"HELPER","hired":"2024-05-31","status":"REGULAR"},{"id":"240658","name":"Tuan, Aldrin Calma","dept":"WAREHOUSE","position":"Warehouse Team Leader","hired":"2024-06-03","status":"REGULAR"},{"id":"240661","name":"Colaljo, Jobert Orong","dept":"FARMS","position":"Flockman","hired":"2024-06-10","status":"REGULAR"},{"id":"240768","name":"Luna, Arman Dador","dept":"LOGISTICS","position":"HELPER","hired":"2024-06-26","status":"REGULAR"},{"id":"240769","name":"Cabula, Melvin Marino","dept":"FARMS","position":"Flockman","hired":"2024-06-27","status":"REGULAR"},{"id":"240354","name":"Desaca, Aljon Dumancas","dept":"MECHANIC","position":"Mechanic","hired":"2024-08-01","status":"REGULAR"},{"id":"190176","name":"Bongais, Alvin Dimaiwat","dept":"SALES","position":"Sales Executive","hired":"2024-08-05","status":"REGULAR"},{"id":"240819","name":"Supilanas, Mark Philip Padilla","dept":"FARMS","position":"Flockman","hired":"2024-08-13","status":"REGULAR"},{"id":"240827","name":"Robis, Adrian Casadia","dept":"FARMS","position":"Flockman","hired":"2024-08-23","status":"REGULAR"},{"id":"240950","name":"Solaon, Sonny Matabuena","dept":"FARMS","position":"Flockman","hired":"2024-09-12","status":"REGULAR"},{"id":"240955","name":"Alcazar, Richard Villanueva","dept":"FARMS","position":"Flockman","hired":"2024-09-16","status":"REGULAR"},{"id":"240957","name":"Pag ilagan, Darwin Tampulayan","dept":"FARMS","position":"Flockman","hired":"2024-09-16","status":"REGULAR"},{"id":"240970","name":"Mata, Jomar Boncayao","dept":"LOGISTICS","position":"HELPER","hired":"2024-09-29","status":"REGULAR"},{"id":"241073","name":"Potente, Eljohn Ganancial","dept":"MECHANIC","position":"Fleet Maintenance Supervisor","hired":"2024-10-09","status":"REGULAR"},{"id":"2243","name":"Santos, Dolly Dancel","dept":"FINANCE","position":"Receivables Supervisor","hired":"2024-10-16","status":"REGULAR"},{"id":"241076","name":"Daulat, Ma Dorrinel Leviste","dept":"SALES","position":"Sales Executive","hired":"2024-10-16","status":"REGULAR"},{"id":"82408","name":"Lopez, Jelin Kazelihn Lunar","dept":"DISTRIBUTION","position":"Sales Executive","hired":"2024-10-21","status":"REGULAR"},{"id":"82412","name":"Casajeros, John Rommel Magampon","dept":"DOCUMENTATION & COMPLIANCE","position":"Quality Assurance Supervisor","hired":"2024-10-22","status":"REGULAR"},{"id":"102024002","name":"Velasco, Dexter Keneth Anunciado","dept":"QA","position":"Quality Assurance Specialist","hired":"2024-11-05","status":"REGULAR"},{"id":"102024004","name":"Averion, Mario Ilagan","dept":"LOGISTICS","position":"HELPER","hired":"2024-11-05","status":"REGULAR"},{"id":"102024007","name":"Laguardia, Johnel Canapit","dept":"FARMS","position":"Flockman","hired":"2024-11-06","status":"REGULAR"},{"id":"102024006","name":"Bronia Jr., Agustin Asusano","dept":"FARMS","position":"Flockman","hired":"2024-11-07","status":"REGULAR"},{"id":"102024009","name":"Paulo, Ronin Emanuel Marabella","dept":"BROILER","position":"Broiler Production Supervisor","hired":"2024-11-11","status":"REGULAR"},{"id":"102024020","name":"Perez, Dexter Paul Rafaela","dept":"LOGISTICS","position":"DRIVER","hired":"2024-11-20","status":"REGULAR"},{"id":"102024022","name":"Luna, Andy Lina","dept":"LOGISTICS","position":"HELPER","hired":"2024-11-20","status":"REGULAR"},{"id":"102024018","name":"Bancuro, Raniel Untalan","dept":"WAREHOUSE","position":"Team Leader","hired":"2024-11-25","status":"REGULAR"},{"id":"102024019","name":"Oledan Jr., Efren Repasa","dept":"WAREHOUSE","position":"Warehouse Dispatcher","hired":"2024-11-25","status":"REGULAR"},{"id":"102024025","name":"De Jesus, Edwin Velasco","dept":"FARMS","position":"Flockman","hired":"2024-12-02","status":"REGULAR"},{"id":"102024031","name":"Hernandez, Melvin Masambique","dept":"LOGISTICS","position":"HELPER","hired":"2024-12-16","status":"REGULAR"},{"id":"102024035","name":"Vertucio, Rommel Fadrilan","dept":"LOGISTICS","position":"HELPER","hired":"2025-01-02","status":"REGULAR"},{"id":"102024040","name":"Montoya, Jexter Paul Collado","dept":"LOGISTICS","position":"HELPER","hired":"2025-01-03","status":"REGULAR"},{"id":"102024048","name":"Guerwela, Jhon Keyven Laycano","dept":"LOGISTICS","position":"HELPER","hired":"2025-01-07","status":"REGULAR"},{"id":"102024059","name":"Briz, Thadius Sungcaya","dept":"LOGISTICS","position":"DRIVER","hired":"2025-01-09","status":"REGULAR"},{"id":"102024070","name":"Teves, Carnel Suspa","dept":"LOGISTICS","position":"DRIVER","hired":"2025-01-12","status":"REGULAR"},{"id":"102024067","name":"Gapiangao, Hermon Palacio","dept":"LOGISTICS","position":"HELPER","hired":"2025-01-15","status":"REGULAR"},{"id":"102024068","name":"Guia, Roel Almirol","dept":"P&F","position":"Electrician","hired":"2025-01-20","status":"REGULAR"},{"id":"102024073","name":"Amparado, Jerald Tinoy","dept":"FARMS","position":"Flockman","hired":"2025-02-02","status":"REGULAR"},{"id":"102024076","name":"Dacug, Marlon Alba","dept":"FURTHER","position":"Meat Cutter","hired":"2025-02-02","status":"REGULAR"},{"id":"102024085","name":"Escarcha, Naidene Consignado","dept":"HR ADMIN","position":"HR & Admin Officer","hired":"2025-02-24","status":"REGULAR"},{"id":"102024086","name":"Bautista, John Paul Asis","dept":"FARMS","position":"Flockman","hired":"2025-02-24","status":"REGULAR"},{"id":"102024099","name":"Abuhat, Loteo Entes","dept":"FARMS","position":"Flockman","hired":"2025-03-11","status":"REGULAR"},{"id":"102024097","name":"Gebilaguin , Ariel Dulce","dept":"FARMS","position":"Flockman","hired":"2025-03-15","status":"REGULAR"},{"id":"102024101","name":"Peregrino, Julius Lagmay","dept":"MANAGER/HEAD","position":"Animal Health Manager","hired":"2025-03-18","status":"REGULAR"},{"id":"102024111","name":"Lavarez, Eric Valdez","dept":"LOGISTICS","position":"DRIVER","hired":"2025-03-26","status":"REGULAR"},{"id":"102024110","name":"Magdangan, Vincent Porteza","dept":"PLANNING","position":"TECH CPF","hired":"2025-04-01","status":"REGULAR"},{"id":"102024133","name":"Gilbuena, Regie Cabe","dept":"MODERN TRADE","position":"Store Operations Manager","hired":"2025-04-01","status":"REGULAR"},{"id":"102024132","name":"Ventura, Gian Matteo Averion","dept":"WAREHOUSE","position":"Warehouse Dispatcher","hired":"2025-04-13","status":"REGULAR"},{"id":"102024122","name":"Yambao, Justin Andre Magno","dept":"QA","position":"Quality Assurance Specialist","hired":"2025-04-14","status":"REGULAR"},{"id":"102024136","name":"Lingon, Jerick Carandang","dept":"FARMS","position":"Flockman","hired":"2025-04-19","status":"REGULAR"},{"id":"102024135","name":"Banez, Jaydel Gara","dept":"LOGISTICS","position":"HELPER","hired":"2025-04-22","status":"REGULAR"},{"id":"102024137","name":"Rubia, Joshua Emmanuel Isidro","dept":"FARMS","position":"Flockman","hired":"2025-04-23","status":"REGULAR"},{"id":"102024147","name":"Pajares, Vic Barcinas","dept":"LOGISTICS","position":"DRIVER","hired":"2025-04-30","status":"REGULAR"},{"id":"102024159","name":"Jemino, Roland Castillo","dept":"P&F","position":"Maintenance Engineer","hired":"2025-05-02","status":"REGULAR"},{"id":"102024175","name":"Mercado, Jovel Roxas","dept":"DRESSING PLANT","position":"Meat Cutter","hired":"2025-05-05","status":"REGULAR"},{"id":"102024176","name":"Ante, Renante Belen","dept":"WAREHOUSE","position":"Warehouseman","hired":"2025-05-07","status":"REGULAR"},{"id":"102024178","name":"Cuasay, Edrian Dimaano","dept":"WAREHOUSE","position":"Warehouseman","hired":"2025-05-07","status":"REGULAR"},{"id":"102024191","name":"Almoroto, Carlo Jay Limpios","dept":"LOGISTICS","position":"DRIVER","hired":"2025-05-20","status":"REGULAR"},{"id":"102024188","name":"Sabong, Vince Malinao","dept":"LOGISTICS","position":"HELPER","hired":"2025-05-23","status":"REGULAR"},{"id":"102024192","name":"Padura, Robert Anthony Escueta","dept":"LOGISTICS","position":"DRIVER","hired":"2025-05-23","status":"REGULAR"},{"id":"102024190","name":"Eresmas, Fernando Parale","dept":"LOGISTICS","position":"DRIVER","hired":"2025-05-24","status":"REGULAR"},{"id":"102024193","name":"Gelizon, Medwin Cornejo","dept":"WAREHOUSE","position":"Warehouseman","hired":"2025-05-27","status":"REGULAR"},{"id":"102024203","name":"Dalinas, Lykamae Dahuya","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2025-06-03","status":"REGULAR"},{"id":"102024205","name":"Cao, Bernadette Balines","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2025-06-03","status":"REGULAR"},{"id":"102024218","name":"Bajado, Danilo Ladiao","dept":"FARMS","position":"Flockman","hired":"2025-06-05","status":"REGULAR"},{"id":"102024219","name":"Arteche, Elias Galo","dept":"FARMS","position":"Flockman","hired":"2025-06-05","status":"REGULAR"},{"id":"102024220","name":"Lavado Jr., Danilo","dept":"FARMS","position":"Flockman","hired":"2025-06-05","status":"REGULAR"},{"id":"102024221","name":"Sahagun, John Ruel Clado","dept":"FARMS","position":"Flockman","hired":"2025-06-10","status":"REGULAR"},{"id":"102024210","name":"Pabustan, Jessie Cuevas","dept":"RESTAURANT","position":"Restaurant Staff- BOH","hired":"2025-06-19","status":"REGULAR"},{"id":"102024224","name":"Dela Cruz, John Paul Del Prado","dept":"RESTAURANT","position":"Restaurant Staff- BOH","hired":"2025-07-01","status":"REGULAR"},{"id":"102024226","name":"Delos Angeles, Ma Antonette Canales","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2025-07-04","status":"REGULAR"},{"id":"102024232","name":"Siscar, Gilbert Cantos","dept":"TRANSPORT","position":"Logistic Coordinator","hired":"2025-07-15","status":"REGULAR"},{"id":"102024233","name":"Umali, Reynald Belen","dept":"LOGISTICS","position":"HELPER","hired":"2025-07-16","status":"REGULAR"},{"id":"102024237","name":"Dones, Gilbert Rodriguez","dept":"LOGISTICS","position":"DRIVER","hired":"2025-08-01","status":"REGULAR"},{"id":"102024238","name":"Ricafrente, Romeo Del Carmen","dept":"LOGISTICS","position":"DRIVER","hired":"2025-08-02","status":"REGULAR"},{"id":"102024243","name":"Ordonez, Yvonne Palentinos","dept":"FINANCE","position":"Disbursement Officer","hired":"2025-08-18","status":"REGULAR"},{"id":"102024240","name":"Mendoza, Dandy Deomano","dept":"PLANNING","position":"Compliance Officer","hired":"2025-08-18","status":"REGULAR"},{"id":"102024247","name":"Lorida, Michael Ronabio","dept":"FARMS","position":"Flockman","hired":"2025-08-26","status":"REGULAR"},{"id":"102024252","name":"Avila, Romulo Eseque","dept":"LOGISTICS","position":"DRIVER","hired":"2025-09-01","status":"REGULAR"},{"id":"102024253","name":"Sistina, Rien Lagurin","dept":"LOGISTICS","position":"HELPER","hired":"2025-09-01","status":"REGULAR"},{"id":"102024254","name":"Bagayawa, Kim Anthony Banagale","dept":"LOGISTICS","position":"HELPER","hired":"2025-09-01","status":"REGULAR"},{"id":"102024255","name":"Brucal, Kim Ryan Barrera","dept":"LOGISTICS","position":"DRIVER","hired":"2025-09-01","status":"REGULAR"},{"id":"102024245","name":"Delapena, Patricia Ann Mendoza","dept":"FINANCE","position":"Disbursement Officer","hired":"2025-09-01","status":"REGULAR"},{"id":"102024258","name":"Beringuel, Marlon Palomar","dept":"LOGISTICS","position":"HELPER","hired":"2025-09-03","status":"REGULAR"},{"id":"102024260","name":"Lingon, Jomar Carandang","dept":"FARMS","position":"Flockman","hired":"2025-09-06","status":"REGULAR"},{"id":"102024257","name":"Ilagan, Beverlyn Baay","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2025-09-10","status":"REGULAR"},{"id":"102024259","name":"Rebadulla, Durrel Boringot","dept":"FARMS","position":"Flockman","hired":"2025-09-10","status":"REGULAR"},{"id":"102024262","name":"Masongsong, Mark John Paul","dept":"GENERAL & ADMIN","position":"Company Driver","hired":"2025-09-13","status":"REGULAR"},{"id":"102024268","name":"Jerusalem, Arnold Jr Miparanum","dept":"FARMS","position":"Flockman","hired":"2025-09-23","status":"REGULAR"},{"id":"102024266","name":"Binibini, Rio Donato","dept":"LOGISTICS","position":"DRIVER","hired":"2025-09-26","status":"REGULAR"},{"id":"102024269","name":"Timena, Reymond Quinay","dept":"LOGISTICS","position":"DRIVER","hired":"2025-09-30","status":"REGULAR"},{"id":"102024280","name":"Valenzuela, John Perry Adriano","dept":"LOGISTICS","position":"HELPER","hired":"2025-10-01","status":"REGULAR"},{"id":"102024267","name":"Requez, Hazel Joy Bautista","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2025-10-01","status":"REGULAR"},{"id":"102024270","name":"Marcelliana, Efren Avila","dept":"LOGISTICS","position":"HELPER","hired":"2025-10-02","status":"REGULAR"},{"id":"102024282","name":"Macazar, Terrence Solero","dept":"BROILER","position":"Broiler Production Officer","hired":"2025-10-02","status":"REGULAR"},{"id":"102024295","name":"Biazon, Maria Lourdes Llanita","dept":"GENERAL & ADMIN","position":"Canteen Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024311","name":"Gatdula, Mary Grace Barrion","dept":"GENERAL & ADMIN","position":"Canteen Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024313","name":"Balandan, Vanessa Barrion","dept":"GENERAL & ADMIN","position":"Canteen Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024315","name":"Flores, Karen Flores","dept":"GENERAL & ADMIN","position":"Canteen Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024316","name":"Cruz, Catherine Francisco","dept":"GENERAL & ADMIN","position":"Canteen Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024319","name":"Martinez, Erwin Antalan","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024337","name":"De Mesa, Mecca Arcasa","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024345","name":"Alon, Melanie Raynog","dept":"GENERAL & ADMIN","position":"Utility Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024359","name":"Bautista, Marites Moog","dept":"DRESSING PLANT","position":"Team Leader","hired":"2025-10-02","status":"REGULAR"},{"id":"102024364","name":"Nebril, Keneth nan","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024367","name":"Galicia, Ronel Lanugo","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-02","status":"REGULAR"},{"id":"102024374","name":"Panganiban, Ditas Balababa","dept":"DRESSING PLANT","position":"Team Leader","hired":"2025-10-02","status":"REGULAR"},{"id":"102024271","name":"Manalo, Mary Ann Amingual","dept":"WAREHOUSE","position":"Warehouse Checker","hired":"2025-10-02","status":"REGULAR"},{"id":"102024312","name":"Mendoza, Amy Carganilla","dept":"GENERAL & ADMIN","position":"Laundry Attendant","hired":"2025-10-03","status":"REGULAR"},{"id":"102024371","name":"Bonilla, Rosalie Arida","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-03","status":"REGULAR"},{"id":"102024378","name":"Rebueno, Marvin Agas","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-04","status":"REGULAR"},{"id":"102024273","name":"Sahagun, April Renz Olaira","dept":"LOGISTICS","position":"HELPER","hired":"2025-10-05","status":"REGULAR"},{"id":"102024276","name":"Catapang, Joh Randolph Llanes","dept":"TRANSPORT","position":"Logistics Coordinator","hired":"2025-10-06","status":"REGULAR"},{"id":"102024278","name":"Avila, Jaysus Mendoza","dept":"SECURITY","position":"Security Guard","hired":"2025-10-07","status":"REGULAR"},{"id":"102024290","name":"Alidio, Rommel Eseo","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-07","status":"REGULAR"},{"id":"102024294","name":"Tanedo, Michael Jordan Diamuda","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-07","status":"REGULAR"},{"id":"102024356","name":"Manalo, Jaysie Casilang","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-07","status":"REGULAR"},{"id":"102024279","name":"Flores, Djay Boaloy","dept":"SECURITY","position":"Security Guard","hired":"2025-10-08","status":"REGULAR"},{"id":"102024281","name":"Abuan, Benedick Cochesa","dept":"WAREHOUSE","position":"Warehouse Dispatcher","hired":"2025-10-10","status":"REGULAR"},{"id":"190312","name":"Sumulong, Julius Marchan","dept":"BROILER","position":"FARM HEAD","hired":"2025-10-13","status":"REGULAR"},{"id":"102024397","name":"Bautista, Claire Balino","dept":"Research & Devt","position":"Quality Assurance Specialist","hired":"2025-10-16","status":"REGULAR"},{"id":"102024398","name":"Sia, Louie Atienza","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2025-10-16","status":"REGULAR"},{"id":"102024399","name":"Carro, Justine Averion","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2025-10-16","status":"REGULAR"},{"id":"102024426","name":"Zara, Rammil Para","dept":"P&F","position":"Maintenance Staff","hired":"2025-10-16","status":"REGULAR"},{"id":"102024386","name":"Andres, Leivenrich Angeles","dept":"MECHANIC","position":"Mechanic","hired":"2025-10-18","status":"REGULAR"},{"id":"102024400","name":"Cuello, Celine Daisy Cosico","dept":"WAREHOUSE","position":"Warehouse Checker","hired":"2025-10-23","status":"REGULAR"},{"id":"102024370","name":"Esteva, Jovelyn Rosario","dept":"QA","position":"GMP","hired":"2025-10-24","status":"REGULAR"},{"id":"102024355","name":"Legson, Rainiel Charlies Enaje","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-25","status":"REGULAR"},{"id":"102024408","name":"Bergula, Iarlvin Banhag","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2025-10-27","status":"REGULAR"},{"id":"102024392","name":"Pelojero, Christian Menorca","dept":"LOGISTICS","position":"DRIVER","hired":"2025-10-28","status":"REGULAR"},{"id":"102024421","name":"Panaligan, John Lennard Lemente","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-10-28","status":"REGULAR"},{"id":"102024396","name":"Varrera, Ronald Duran","dept":"FARMS","position":"Flockman","hired":"2025-10-29","status":"REGULAR"},{"id":"102024395","name":"Carandang, Jayson Moncayo","dept":"LOGISTICS","position":"HELPER","hired":"2025-10-30","status":"REGULAR"},{"id":"102024403","name":"Basanal, Rizalina Nolasco","dept":"GENERAL & ADMIN","position":"Canteen Staff","hired":"2025-11-04","status":"REGULAR"},{"id":"102024428","name":"Bunyi, Wilmer Hernandez","dept":"LOGISTICS","position":"HELPER","hired":"2025-11-04","status":"REGULAR"},{"id":"102024429","name":"Fabros, Janella Marisse Laroya","dept":"P&F","position":"Sanitary Engineer","hired":"2025-11-06","status":"REGULAR"},{"id":"102024431","name":"Beroin, Mark Jaycel Nardo","dept":"LOGISTICS","position":"HELPER","hired":"2025-11-12","status":"REGULAR"},{"id":"102024433","name":"Mariveles, Alvin Rey Cano","dept":"LOGISTICS","position":"DRIVER","hired":"2025-11-13","status":"REGULAR"},{"id":"102024436","name":"Hechanova, John Vincent","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2025-11-13","status":"REGULAR"},{"id":"102024439","name":"Navarro, Willmel Alado","dept":"SECURITY","position":"Security Guard","hired":"2025-11-13","status":"REGULAR"},{"id":"102024440","name":"Medina, Baltazar Galac","dept":"P&F","position":"Maintenance Staff (Mechanical) Boiler","hired":"2025-11-14","status":"REGULAR"},{"id":"102024450","name":"Gonzales, Merwin Samiado","dept":"DRESSING PLANT","position":"Production Staff","hired":"2025-11-15","status":"REGULAR"},{"id":"102024459","name":"Seva, France Carla Beltran","dept":"WAREHOUSE","position":"Warehouse Lead/ Invoicer (AM)","hired":"2025-11-17","status":"REGULAR"},{"id":"102024441","name":"Nalangan, Ken Lennard Diangkinay","dept":"LOGISTICS","position":"HELPER","hired":"2025-11-18","status":"REGULAR"},{"id":"102024442","name":"Diangkinay, Marwin Hernandez","dept":"LOGISTICS","position":"HELPER","hired":"2025-11-18","status":"REGULAR"},{"id":"102024443","name":"Naredo, Stephen Shawne Baccay","dept":"LOGISTICS","position":"HELPER","hired":"2025-11-18","status":"REGULAR"},{"id":"102024460","name":"Torres, Marielle Infante","dept":"DISTRIBUTION","position":"Biling Officer","hired":"2025-11-19","status":"REGULAR"},{"id":"102024463","name":"Morales, Evmhar Puno","dept":"LOGISTICS","position":"HELPER","hired":"2025-11-24","status":"REGULAR"},{"id":"102024381","name":"Villamayor, Jimuel nan","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2025-11-25","status":"REGULAR"},{"id":"102024473","name":"Escubido, Adrianne Eunice Oliveros","dept":"QA","position":"Quality Assurance Specialist","hired":"2025-12-01","status":"REGULAR"},{"id":"102024474","name":"Hipulan, John Mark Bonghanoy","dept":"FARMS","position":"Flockman","hired":"2025-12-07","status":"REGULAR"},{"id":"102024475","name":"Hernandez, Mario Diangkinay","dept":"P&F","position":"Electrician","hired":"2025-12-11","status":"REGULAR"},{"id":"102024478","name":"Montierde, Jhon Carlo Villanueva","dept":"LOGISTICS","position":"HELPER","hired":"2025-12-14","status":"REGULAR"},{"id":"102024477","name":"Magalang, Mark Louis Caperina","dept":"P&F","position":"Electrician","hired":"2025-12-16","status":"REGULAR"},{"id":"102024484","name":"Corpuz, Rey Ar Dela Trinidad","dept":"LOGISTICS","position":"HELPER","hired":"2025-12-17","status":"REGULAR"},{"id":"102024485","name":"Arellano, Marc Daryl Masa","dept":"LOGISTICS","position":"HELPER","hired":"2025-12-18","status":"REGULAR"},{"id":"102024486","name":"Manalo, John Lloyd Aquino","dept":"SECURITY","position":"Security Guard","hired":"2025-12-20","status":"REGULAR"},{"id":"102024492","name":"Leonardo, Paulo","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2025-12-30","status":"REGULAR"},{"id":"102024493","name":"Bodoso, William Eleseo","dept":"SECURITY","position":"Security Guard","hired":"2026-01-02","status":"REGULAR"},{"id":"102024496","name":"Arceta, Barry Baylon","dept":"LOGISTICS","position":"DRIVER","hired":"2026-01-06","status":"REGULAR"},{"id":"102024497","name":"Echual, Juanito Fernandez","dept":"LOGISTICS","position":"DRIVER","hired":"2026-01-06","status":"REGULAR"},{"id":"102024498","name":"Ruelas, Jomar Mendoza","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-07","status":"REGULAR"},{"id":"102024500","name":"Tumbado, Richard Sanchez","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-08","status":"REGULAR"},{"id":"102024501","name":"Mendoza, Romel Fernandez","dept":"SECURITY","position":"Security Guard","hired":"2026-01-08","status":"REGULAR"},{"id":"102024502","name":"Lozano, Anthony Rodolfo Rivera","dept":"SECURITY","position":"Security Guard","hired":"2026-01-08","status":"REGULAR"},{"id":"102024509","name":"Soriano, Jose Emmanuel Carro","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-08","status":"REGULAR"},{"id":"102024510","name":"Gesmundo, Christian Palomata","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-08","status":"REGULAR"},{"id":"102024051","name":"Ballenas, Raymond Rayala","dept":"FARMS","position":"Flockman","hired":"2026-01-08","status":"REGULAR"},{"id":"102024504","name":"Cotejo, Charity Viovicente","dept":"RESTAURANT","position":"Restaurant Staff - FOH","hired":"2026-01-08","status":"REGULAR"},{"id":"102024377","name":"Abril, Marlon Balababa","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-01-09","status":"REGULAR"},{"id":"102024506","name":"Castaneda, Arielito Magsino","dept":"LOGISTICS","position":"DRIVER","hired":"2026-01-09","status":"REGULAR"},{"id":"102024520","name":"Sibul, Mark Leo Lope","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-09","status":"REGULAR"},{"id":"230360","name":"Bombuhay, Adrian Delos Reyes","dept":"FARMS","position":"Flockman","hired":"2026-01-10","status":"REGULAR"},{"id":"240797","name":"Nuñez, Gerald Payadyad","dept":"FARMS","position":"Flockman","hired":"2026-01-10","status":"REGULAR"},{"id":"102024507","name":"Gaquit, Wilfred Gallarde","dept":"LOGISTICS","position":"DRIVER","hired":"2026-01-11","status":"REGULAR"},{"id":"102024517","name":"Borja, Jeson Afante","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-12","status":"REGULAR"},{"id":"102024514","name":"Torres, Alvin Veran","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-13","status":"REGULAR"},{"id":"102024526","name":"Ramos, John Kevin Merene","dept":"FARMS","position":"Flockman","hired":"2026-01-13","status":"REGULAR"},{"id":"102024527","name":"Rogelio, John Michael Marino","dept":"FARMS","position":"Flockman","hired":"2026-01-13","status":"REGULAR"},{"id":"102024515","name":"Lulu, Kyla Maghirang","dept":"HR ADMIN","position":"HR Staff","hired":"2026-01-14","status":"REGULAR"},{"id":"102024553","name":"Gabia, Cleo Salac","dept":"FARMS","position":"Flockman","hired":"2026-01-18","status":"REGULAR"},{"id":"102024533","name":"Mabasa, Jeric Aliganga","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-19","status":"REGULAR"},{"id":"102024534","name":"Halunajan, Jhon Herson Dionglay","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-19","status":"REGULAR"},{"id":"102024543","name":"Hernandez, Rita Lyn Cabasi","dept":"HR ADMIN","position":"HR & Admin Assistant Manager","hired":"2026-01-19","status":"REGULAR"},{"id":"102024538","name":"Peras, Kylle Bryan Cristales","dept":"LOGISTICS","position":"HELPER","hired":"2026-01-20","status":"REGULAR"},{"id":"102024542","name":"Dausan, Rodel Glosino","dept":"LOGISTICS","position":"DRIVER","hired":"2026-01-21","status":"REGULAR"},{"id":"102024544","name":"Cortez, Christopher Eseo","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-01-26","status":"REGULAR"},{"id":"102024545","name":"Sugano, Marife Perino","dept":"GENERAL & ADMIN","position":"Utility Staff","hired":"2026-02-02","status":"REGULAR"},{"id":"102024546","name":"Canchela, Jhomel Edgie Bisco","dept":"DISTRIBUTION","position":"Aquaculture Farm Manager","hired":"2026-02-02","status":"REGULAR"},{"id":"102024548","name":"Bomiel, Jaymar Lisondra","dept":"FINANCE","position":"AR & Collection Staff","hired":"2026-02-03","status":"REGULAR"},{"id":"102024557","name":"Magno, Jerome Marmol","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-06","status":"REGULAR"},{"id":"102024558","name":"Baybay, Mark Ryan Gordoncillo","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-06","status":"REGULAR"},{"id":"102024559","name":"Valencia, Roy Sollestre","dept":"FARMS","position":"Flockman","hired":"2026-02-06","status":"REGULAR"},{"id":"102024561","name":"Sacopon, Jerome Doloeras","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-10","status":"REGULAR"},{"id":"102024562","name":"Manalo, John Red Manalo","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-10","status":"REGULAR"},{"id":"102024577","name":"Arcos, Ronald Hermida","dept":"FARMS","position":"Flockman","hired":"2026-02-10","status":"REGULAR"},{"id":"102024567","name":"Torrizo, Ric Mar Recto","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-12","status":"REGULAR"},{"id":"102024572","name":"Ramirez, Andres De Leon","dept":"FARMS","position":"Flockman","hired":"2026-02-14","status":"REGULAR"},{"id":"102024570","name":"Titular, Jerson Casilang","dept":"P&F","position":"Electrician","hired":"2026-02-18","status":"REGULAR"},{"id":"102024573","name":"Brion, Alyssa Ampeloquio","dept":"HR ADMIN","position":"HR & Admin Officer","hired":"2026-02-18","status":"REGULAR"},{"id":"102024582","name":"Garcia, Jerry Bolado","dept":"WAREHOUSE","position":"Warehouse Staff","hired":"2026-02-24","status":"PROBATIONARY"},{"id":"102024584","name":"Lopez, Charles","dept":"HR ADMIN","position":"Utility Staff","hired":"2026-02-25","status":"PROBATIONARY"},{"id":"102024586","name":"Hernandez, Mark Frankel Diangkinay","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-26","status":"PROBATIONARY"},{"id":"102024587","name":"Guia, Yujie NMN","dept":"LOGISTICS","position":"HELPER","hired":"2026-02-26","status":"PROBATIONARY"},{"id":"102024605","name":"Acosta, Rogelio Jr Advincula","dept":"MODERN TRADE","position":"Area Sales Supervisor- QC","hired":"2026-03-02","status":"PROBATIONARY"},{"id":"102024604","name":"Gonzales, Baby Gezel Cabanez","dept":"FINANCE","position":"Documentation Officer","hired":"2026-03-12","status":"PROBATIONARY"},{"id":"102024612","name":"Pulod, Jeffrey Enriquez","dept":"MODERN TRADE","position":"Area Sales Supervisor","hired":"2026-03-16","status":"PROBATIONARY"},{"id":"102024613","name":"Agonia, Michael Masongsong","dept":"LOGISTICS","position":"HELPER","hired":"2026-03-16","status":"PROBATIONARY"},{"id":"102024614","name":"Fernandez, Niel Allen Millares","dept":"IT","position":"IT Staff","hired":"2026-03-18","status":"PROBATIONARY"},{"id":"102024632","name":"Rosales, Ron Kyle Castro","dept":"FARMS","position":"Flockman","hired":"2026-03-23","status":"PROBATIONARY"},{"id":"102024618","name":"Dayo, Melvin Caponpon","dept":"LOGISTICS","position":"HELPER","hired":"2026-03-24","status":"PROBATIONARY"},{"id":"102024619","name":"Palomar, Rolando Merabete","dept":"LOGISTICS","position":"DRIVER","hired":"2026-03-24","status":"PROBATIONARY"},{"id":"102024620","name":"Novera, Steven Cruz","dept":"SWINE","position":"Swine Supervisor","hired":"2026-03-24","status":"PROBATIONARY"},{"id":"102024621","name":"Dalit, Ma Elaine Mae Avila","dept":"HR ADMIN","position":"HR Staff","hired":"2026-03-25","status":"PROBATIONARY"},{"id":"240530","name":"Manuel, Joseph Mirandilla","dept":"FARMS","position":"Flockman","hired":"2026-03-26","status":"PROBATIONARY"},{"id":"102024629","name":"Manuel, Christian Lasap","dept":"FARMS","position":"Flockman","hired":"2026-03-26","status":"PROBATIONARY"},{"id":"102024625","name":"Manset, Kevin Cristian Esguerra","dept":"P&F","position":"Electrician","hired":"2026-03-27","status":"PROBATIONARY"},{"id":"240655","name":"Velasco, Jean Gabriel Apolinario","dept":"FARMS","position":"Flockman","hired":"2026-03-28","status":"PROBATIONARY"},{"id":"102024630","name":"Tonga, Roy Begle","dept":"FARMS","position":"Flockman","hired":"2026-03-28","status":"PROBATIONARY"},{"id":"102024631","name":"Velasco, John Lennon NMN","dept":"FARMS","position":"Flockman","hired":"2026-03-28","status":"PROBATIONARY"},{"id":"102024626","name":"Anonuevo, Raniel Diaz","dept":"PLANNING","position":"Compliance Officer","hired":"2026-03-30","status":"PROBATIONARY"},{"id":"102024628","name":"Delas Alas, Jay Chris Bautista","dept":"MANAGER/HEAD","position":"System Development Manager","hired":"2026-03-31","status":"PROBATIONARY"},{"id":"102024634","name":"Ballenas, Justine Rayala","dept":"FARMS","position":"Flockman","hired":"2026-04-01","status":"PROBATIONARY"},{"id":"102024636","name":"Rivero, Andres Jr. Dominguez","dept":"P&F","position":"Electrician","hired":"2026-04-07","status":"PROBATIONARY"},{"id":"102024638","name":"Cay, Harvy Radan","dept":"FARMS","position":"Flockman","hired":"2026-04-07","status":"PROBATIONARY"},{"id":"102024637","name":"Angkiangco, James Mathew Felicidario","dept":"LOGISTICS","position":"Helper","hired":"2026-04-08","status":"PROBATIONARY"},{"id":"102024640","name":"Manuel, Joel Mirandilla","dept":"FARMS","position":"Flockman","hired":"2026-04-08","status":"PROBATIONARY"},{"id":"102024641","name":"Losande, Eduardo Miraflor","dept":"FARMS","position":"Flockman","hired":"2026-04-08","status":"PROBATIONARY"},{"id":"102024642","name":"Rosas, Cyrilene Espiritu","dept":"TRANSPORT","position":"Logistics Coordinator","hired":"2026-04-10","status":"PROBATIONARY"},{"id":"102024644","name":"Averion, Jade Ronan Moreno","dept":"LOGISTICS","position":"Helper","hired":"2026-04-11","status":"PROBATIONARY"},{"id":"102024645","name":"Babiera, Jeyhnyrd Olano","dept":"LOGISTICS","position":"Driver","hired":"2026-04-13","status":"PROBATIONARY"},{"id":"102024647","name":"Villanueva, Jhon Rey Viola","dept":"FINANCE","position":"Accounting Auditor","hired":"2026-04-13","status":"PROBATIONARY"},{"id":"102024656","name":"Matienzo, Rhendel NMN","dept":"FARMS","position":"Flockman","hired":"2026-04-13","status":"PROBATIONARY"},{"id":"102024657","name":"Pisalve, Christian NMN","dept":"FARMS","position":"Flockman","hired":"2026-04-13","status":"PROBATIONARY"},{"id":"102024649","name":"Cosico, Severiano Jr. Soriano","dept":"LOGISTICS","position":"Driver","hired":"2026-04-14","status":"PROBATIONARY"},{"id":"102024652","name":"Alcaide, Kenneth Jordan","dept":"LOGISTICS","position":"Helper","hired":"2026-04-15","status":"PROBATIONARY"},{"id":"62026017","name":"Velasco, Eugene Escalderon","dept":"LOGISTICS","position":"Helper","hired":"2026-04-16","status":"PROBATIONARY"},{"id":"102024655","name":"Asagra, Jared NMN","dept":"LOGISTICS","position":"Helper","hired":"2026-04-18","status":"PROBATIONARY"},{"id":"102024658","name":"Balitaan, John Raven Llamoso","dept":"LOGISTICS","position":"Helper","hired":"2026-04-18","status":"PROBATIONARY"},{"id":"102024650","name":"Loza, Noelle Sangco","dept":"EXECUTIVE DEPT","position":"Secretary","hired":"2026-04-20","status":"PROBATIONARY"},{"id":"102024661","name":"Lubrin, Grey Mark Hernandez","dept":"P&F","position":"Waste Water Technician","hired":"2026-04-20","status":"PROBATIONARY"},{"id":"102024662","name":"Morelos, Aubrey Rose Hernandez","dept":"PROCUREMENT","position":"Procurement Officer","hired":"2026-04-22","status":"PROBATIONARY"},{"id":"102024663","name":"Colorada, Joseph Tayzon","dept":"LOGISTICS","position":"Driver","hired":"2026-04-23","status":"PROBATIONARY"},{"id":"102024664","name":"Urbano, Dennis Roldan Arapiles","dept":"LOGISTICS","position":"Driver","hired":"2026-04-23","status":"PROBATIONARY"},{"id":"102024665","name":"Sahagun, Reymart Masongsong","dept":"LOGISTICS","position":"Helper","hired":"2026-04-23","status":"PROBATIONARY"},{"id":"102024666","name":"Penana, John John De Belen","dept":"LOGISTICS","position":"Helper","hired":"2026-04-24","status":"PROBATIONARY"},{"id":"102024667","name":"Buenaflor, Marvin Corcega","dept":"LOGISTICS","position":"Helper","hired":"2026-04-24","status":"PROBATIONARY"},{"id":"102024671","name":"Torres, Adrel John Betchayda","dept":"FARMS","position":"Flockman","hired":"2026-04-25","status":"PROBATIONARY"},{"id":"102024669","name":"Lorico, Cherizz Anne Joyce Rondolo","dept":"EXECUTIVE DEPT","position":"Executive Secretary","hired":"2026-04-27","status":"PROBATIONARY"},{"id":"102024670","name":"Endaya, Hannah Dayawon","dept":"EXECUTIVE DEPT","position":"Executive Secretary","hired":"2026-04-27","status":"PROBATIONARY"},{"id":"102024673","name":"Espiritu, Jerus Cabus","dept":"SECURITY","position":"Security Guard","hired":"2026-04-28","status":"PROBATIONARY"},{"id":"102024675","name":"Retuerto, Jeffrey Ciron","dept":"GENERAL & ADMIN","position":"Company Driver","hired":"2026-04-28","status":"PROBATIONARY"},{"id":"102024686","name":"Saludes, Fernel Deligero","dept":"MODERN TRADE","position":"Area Sales Supervisor","hired":"2026-04-28","status":"PROBATIONARY"},{"id":"102024687","name":"Laurente, Gerry Angelo Calderon","dept":"MODERN TRADE","position":"Area Sales Supervisor","hired":"2026-04-28","status":"PROBATIONARY"},{"id":"102024679","name":"Moreno, Dinah Solares","dept":"SECURITY","position":"Security Guard","hired":"2026-04-29","status":"PROBATIONARY"},{"id":"102024680","name":"Liabres, Kayben Timbang","dept":"LOGISTICS","position":"Driver","hired":"2026-04-29","status":"PROBATIONARY"},{"id":"102024683","name":"Ociel, Ariel Labuac","dept":"LOGISTICS","position":"Helper","hired":"2026-04-29","status":"PROBATIONARY"},{"id":"102024681","name":"Calaor, Alfred John Pilla","dept":"RESTAURANT","position":"Restaurant Staff - BOH","hired":"2026-04-29","status":"PROBATIONARY"},{"id":"102024676","name":"Abellano, Adrian Brizuela","dept":"FINANCE","position":"Accounting Assistant","hired":"2026-05-04","status":"PROBATIONARY"},{"id":"102024684","name":"Coronado, Jewel Marie Brosas","dept":"FINANCE","position":"Accounting Staff","hired":"2026-05-04","status":"PROBATIONARY"},{"id":"102024685","name":"Liang, Joey Mendoza","dept":"LOGISTICS","position":"Driver","hired":"2026-05-04","status":"PROBATIONARY"},{"id":"102024688","name":"Elec, Marlon Villar","dept":"MANAGER/HEAD","position":"Transport Manager","hired":"2026-05-04","status":"PROBATIONARY"},{"id":"102024677","name":"Osial Jr., Rodolfo Aquino","dept":"P&F","position":"Refrigeration Technician","hired":"2026-05-05","status":"PROBATIONARY"},{"id":"102024689","name":"Crisolo, Nelly Padua","dept":"WAREHOUSE","position":"Warehouse Invoicer","hired":"2026-05-05","status":"PROBATIONARY"},{"id":"102024690","name":"Castellano, Heren Samatra","dept":"MODERN TRADE","position":"Sales Executive (Feeds)","hired":"2026-05-05","status":"PROBATIONARY"},{"id":"102024691","name":"Pantalla, Emman Perpetua","dept":"LOGISTICS","position":"Driver","hired":"2026-05-05","status":"PROBATIONARY"},{"id":"102024692","name":"Caguite, Derick Perez","dept":"LOGISTICS","position":"Helper","hired":"2026-05-06","status":"PROBATIONARY"},{"id":"102024693","name":"Cartina, Donn Joseph Dayo","dept":"LOGISTICS","position":"Driver","hired":"2026-05-06","status":"PROBATIONARY"},{"id":"102024694","name":"Atienza, Francisco Recaredo Dela Vega","dept":"WAREHOUSE","position":"Warehouse Transporter","hired":"2026-05-06","status":"PROBATIONARY"},{"id":"102024707","name":"Salac, John Carlo Forbes","dept":"FARMS","position":"Flockman","hired":"2026-05-08","status":"PROBATIONARY"},{"id":"62026002","name":"Lazar, Jerico nan","dept":"FARMS","position":"Flockman","hired":"2026-05-09","status":"PROBATIONARY"},{"id":"240534","name":"Moratalla, Rj Nabor","dept":"FARMS","position":"Flockman","hired":"2026-05-10","status":"PROBATIONARY"},{"id":"102024708","name":"Manuel, Richard Llames","dept":"FARMS","position":"Flockman","hired":"2026-05-10","status":"PROBATIONARY"},{"id":"102024678","name":"Abril, Helene Cellero","dept":"GENERAL & ADMIN","position":"Security Guard","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024695","name":"David, Jason Ledesma","dept":"P&F","position":"Refrigeration Technician","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024698","name":"Dela Cruz, Marck James Baliwag","dept":"FARMS","position":"Flockman","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024700","name":"Malibiran, Renato Atienza","dept":"FARMS","position":"Flockman","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024701","name":"Hindap, Marly Baldestamon","dept":"FARMS","position":"Flockman","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024704","name":"Malicse, France Kenneth Ablanzar","dept":"FARMS","position":"Flockman","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024705","name":"Chavez, Dexter Noora","dept":"MECHANIC","position":"Auto Electrician","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024706","name":"Alcantara, Marvin Furio","dept":"LOGISTICS","position":"Helper","hired":"2026-05-11","status":"PROBATIONARY"},{"id":"102024710","name":"Sumumpat, Jerome Ronquillo","dept":"LOGISTICS","position":"HELPER","hired":"2026-05-22","status":"PROBATIONARY"},{"id":"102024711","name":"Sabino, Romeo Filoteo","dept":"WAREHOUSE","position":"Warehouse Transporter","hired":"2026-05-25","status":"PROBATIONARY"},{"id":"102024712","name":"Cosico, Edrian Serdena","dept":"LOGISTICS","position":"Driver","hired":"2026-05-25","status":"PROBATIONARY"},{"id":"102024714","name":"Artiaga, Armand Bansale","dept":"LOGISTICS","position":"Driver","hired":"2026-05-25","status":"PROBATIONARY"},{"id":"102024715","name":"Ferrer, Jantzen Lumbis","dept":"WAREHOUSE","position":"Warehouse Transporter","hired":"2026-05-25","status":"PROBATIONARY"},{"id":"102024717","name":"Tadifa, John Paul Doria","dept":"WAREHOUSE","position":"Warehouse Transporter","hired":"2026-05-25","status":"PROBATIONARY"},{"id":"102024719","name":"Lasala, Jerymie Oraye","dept":"LOGISTICS","position":"Helper","hired":"2026-05-27","status":"PROBATIONARY"},{"id":"102024720","name":"Bruzon, Don Ralph Gato","dept":"LOGISTICS","position":"Driver","hired":"2026-05-27","status":"PROBATIONARY"},{"id":"102024722","name":"Guevarra, Rommel Soriano","dept":"FINANCE","position":"Accounting Staff","hired":"2026-06-01","status":"PROBATIONARY"},{"id":"62026001","name":"Angeles, John Lionel Pangilinan","dept":"LOGISTICS","position":"Logistics Coordinator","hired":"2026-06-01","status":"PROBATIONARY"},{"id":"62026003","name":"Talla, Edison Banaag","dept":"LOGISTICS","position":"Logistics Coordinator","hired":"2026-06-04","status":"PROBATIONARY"},{"id":"62026004","name":"Osorio, Carl Anthony Samonte","dept":"BROILER","position":"Broiler Production Supervisor","hired":"2026-06-08","status":"PROBATIONARY"},{"id":"62026005","name":"Sacala, Carl Louie Morados","dept":"LOGISTICS","position":"Helper","hired":"2026-06-09","status":"PROBATIONARY"},{"id":"62026007","name":"Orenze, Christan Salvador","dept":"LOGISTICS","position":"Helper","hired":"2026-06-09","status":"PROBATIONARY"},{"id":"62026009","name":"Carcer, Melchor Palomar","dept":"LOGISTICS","position":"Helper","hired":"2026-06-09","status":"PROBATIONARY"},{"id":"260113","name":"Veloso, Paul John Jacob","dept":"MANAGER/HEAD","position":"Business Development Manager","hired":"2026-06-16","status":"PROBATIONARY"},{"id":"62026011","name":"Castillo, Nerson Villanueva","dept":"GENERAL & ADMIN","position":"Company Driver","hired":"2026-06-17","status":"PROBATIONARY"},{"id":"62026012","name":"Fuentes, Jaicen Dave Belen","dept":"LOGISTICS","position":"Helper","hired":"2026-06-17","status":"PROBATIONARY"},{"id":"62026013","name":"Legarce, Marvin Perez","dept":"LOGISTICS","position":"Helper","hired":"2026-06-17","status":"PROBATIONARY"},{"id":"62026015","name":"Belen, Ralph Gabriel Cahimat","dept":"LOGISTICS","position":"Helper","hired":"2026-06-17","status":"PROBATIONARY"},{"id":"62026016","name":"Tuazon, Grendan Verde","dept":"WAREHOUSE","position":"Warehouse Lead","hired":"2026-06-17","status":"PROBATIONARY"},{"id":"62026069","name":"Mantes, Mary Jane Cabañeros","dept":"SANITATION","position":"Sanitation","hired":"2026-06-18","status":"PROBATIONARY"},{"id":"062026-068","name":"Atienza, Mandy Barcenas","dept":"SANITATION","position":"Sanitation","hired":"2026-06-18","status":"PROBATIONARY"},{"id":"62026019","name":"Codog, Benedict Sentillas","dept":"LOGISTICS","position":"Helper","hired":"2026-06-20","status":"PROBATIONARY"},{"id":"62026020","name":"Barola, Carl Andrei Fajardo","dept":"LOGISTICS","position":"Helper","hired":"2026-06-20","status":"PROBATIONARY"},{"id":"62026066","name":"Ortega, Jerico Arenal","dept":"FARMS","position":"Flockman","hired":"2026-06-22","status":"PROBATIONARY"},{"id":"62026018","name":"Forniloza, Benjamin Andrews Lopez","dept":"QA","position":"Quality Assurance Specialist","hired":"2026-06-23","status":"PROBATIONARY"},{"id":"62026067","name":"Buce, Edrhean Lustado","dept":"FARMS","position":"Flockman","hired":"2026-06-23","status":"PROBATIONARY"},{"id":"72026005","name":"Lasin, Joross Lae nan","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-06-23","status":"PROBATIONARY"},{"id":"72026023","name":"Belen, Mark Joseph Anggay","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-06-23","status":"PROBATIONARY"},{"id":"62026064","name":"Eugenio, Virgil Carl Alcantara","dept":"RESTAURANT","position":"Head Chef","hired":"2026-06-23","status":"PROBATIONARY"},{"id":"62026065","name":"Tortona, Emmanuel John Bonagua","dept":"RESTAURANT","position":"Kitchen Supervisor","hired":"2026-06-23","status":"PROBATIONARY"},{"id":"62026075","name":"Yopyop, John Marriel Hitosis","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"62026077","name":"Jaylo, Jude Guevarra","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"72026004","name":"Eseo, Mark Vincent Mancinido","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"72026013","name":"Elvena, Eric Opelario","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"72026024","name":"Pamanano, Marivic Gano","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"72026031","name":"Hermoso, Emmanuel Ysug","dept":"FARMS","position":"FLOCKMAN","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"72026032","name":"Jose, Jhon Rey Quijano","dept":"FARMS","position":"FLOCKMAN","hired":"2026-06-29","status":"PROBATIONARY"},{"id":"72026012","name":"Sison, Veralie Ghesca","dept":"QC","position":"QC","hired":"2026-06-30","status":"PROBATIONARY"},{"id":"72026011","name":"Altar, Judith Esquerdo","dept":"QC","position":"QC","hired":"2026-06-30","status":"PROBATIONARY"},{"id":"72026010","name":"Balitaan, Sheena Tolentino","dept":"QC","position":"QC","hired":"2026-06-30","status":"PROBATIONARY"},{"id":"72026009","name":"De los Reys, Jeannie Lyn Vargas","dept":"QC","position":"QC","hired":"2026-06-30","status":"PROBATIONARY"},{"id":"72026026","name":"Buera, Jaymar Ong","dept":"LOGISTICS","position":"DRIVER","hired":"2026-07-01","status":"PROBATIONARY"},{"id":"72026033","name":"Pascua, Roy Aljon Rosario","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-01","status":"PROBATIONARY"},{"id":"72026-025","name":"Lagos, John Philip Perfinian","dept":"LOGISTICS","position":"HELPER","hired":"2026-07-01","status":"PROBATIONARY"},{"id":"72026027","name":"Basmayor, Vincent","dept":"RESTAURANT","position":"Restaurant Staff - BOH","hired":"2026-07-02","status":"PROBATIONARY"},{"id":"72026028","name":"Tabor, Mike Justine Sia","dept":"RESTAURANT","position":"Restaurant Staff - BOH","hired":"2026-07-02","status":"PROBATIONARY"},{"id":"72026029","name":"Balolong, Irene Montilla","dept":"RESTAURANT","position":"Restaurant Staff - BOH","hired":"2026-07-02","status":"PROBATIONARY"},{"id":"72026016","name":"Nedera, Richard Lopez","dept":"LOGISTICS","position":"Helper","hired":"2026-07-03","status":"PROBATIONARY"},{"id":"72026021","name":"Evangelista, John Andrei Alba","dept":"LOGISTICS","position":"Helper","hired":"2026-07-03","status":"PROBATIONARY"},{"id":"72026014","name":"Efa, John Cedrick Punzalan","dept":"LOGISTICS","position":"Helper","hired":"2026-07-03","status":"PROBATIONARY"},{"id":"72026018","name":"Ogo, John Kenneth Savilla","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-07-04","status":"PROBATIONARY"},{"id":"72026019","name":"Sumadsad, John David Ocampo","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-07-04","status":"PROBATIONARY"},{"id":"72026036","name":"Aguason, Brix Elmo De Castro","dept":"WAREHOUSE","position":"Warehouse Invoicer","hired":"2026-07-06","status":"PROBATIONARY"},{"id":"72026007","name":"Aban, Jayson Reyes","dept":"SANITATION","position":"Sanitation Staff","hired":"2026-07-07","status":"PROBATIONARY"},{"id":"72026038","name":"Tibayan, Menardo Dumael","dept":"LOGISTICS","position":"Helper","hired":"2026-07-07","status":"PROBATIONARY"},{"id":"72026048","name":"De Mesa, Marlon Jr. Alupit","dept":"SWINE","position":"SWINE TECHNICIAN","hired":"2026-07-07","status":"PROBATIONARY"},{"id":"72026046","name":"Borcelango, Kier Loleng","dept":"LOGISTICS","position":"HELPER","hired":"2026-07-08","status":"PROBATIONARY"},{"id":"72026047","name":"Fandialan, Kaile Denver Pallen","dept":"LOGISTICS","position":"HELPER","hired":"2026-07-08","status":"PROBATIONARY"},{"id":"72026043","name":"Puerta, Jomar Brosas","dept":"SWINE","position":"SWINE TECHNICIAN","hired":"2026-07-09","status":"PROBATIONARY"},{"id":"72026044","name":"Timban, Jay-R Dalde","dept":"SWINE","position":"SWINE TECHNICIAN","hired":"2026-07-09","status":"PROBATIONARY"},{"id":"72026045","name":"Guarino, Kyle Angelo Almeda","dept":"SWINE","position":"SWINE TECHNICIAN","hired":"2026-07-09","status":"PROBATIONARY"},{"id":"72026060","name":"Gonzaga, William Briol","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-09","status":"PROBATIONARY"},{"id":"72026079","name":"Mauricio, Anna Christina Escano","dept":"MANAGER/HEAD","position":"Procurement Manager","hired":"2026-07-10","status":"PROBATIONARY"},{"id":"72026062","name":"Salberon, Lorilyn Abril","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026063","name":"Susano, Jhoan Reyes","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026064","name":"Velasco, Marites Otis","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026068","name":"Avila, Wency Ocampo","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026069","name":"Agno, Camille NMN","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026070","name":"Carro, Margie Buerano","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026071","name":"Narciso, Judelyn Maan Guevarra","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026072","name":"Laura, Emmalyn Benepayo","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026073","name":"Padagas, Reah Boncayo","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026074","name":"Flores, Darwina Eddie","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026020","name":"Mora, Noel Arvin Tagle","dept":"WAREHOUSE","position":"Storageman","hired":"2026-07-12","status":"PROBATIONARY"},{"id":"72026001","name":"Tablante, Gene Errol Gutierrez","dept":"QA","position":"Quality Assurance Specialist","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"62026097","name":"Maghirang , Andrei Ecat","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"62026098","name":"Tolentino , Byron Joseph Belina","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"62026099","name":"Aycocho, Melvin Limpiada","dept":"FURTHER","position":"Further","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"62026100","name":"Fandiño, Rodel Flores","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"72026006","name":"Rodriguez, Rogelio Jr. Sabanat","dept":"FURTHER","position":"Tumbler Machine Operator","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"72026076","name":"Vita, Josephine Capablanca","dept":"DRESSING PLANT","position":"Production Staff","hired":"2026-07-13","status":"PROBATIONARY"},{"id":"72026078","name":"Tacorda, Aries Alcratis","dept":"SANITATION","position":"Sanitation","hired":"2026-07-14","status":"PROBATIONARY"},{"id":"72026008","name":"Cabilos, Jerald James Dacutan","dept":"FURTHER","position":"Further","hired":"2026-07-14","status":"PROBATIONARY"}]</script>
+<script id="violations-data" type="application/json">[{"id": "V001", "category": "Integrity & Honesty (Class A)", "name": "Theft", "desc": "Theft of money, product, equipment, or other company property.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagnanakaw", "desc_tl": "Pagnanakaw ng pera, produkto, kagamitan, o iba pang ari-arian ng kumpanya."}, {"id": "V002", "category": "Integrity & Honesty (Class A)", "name": "Malversation of Company Funds", "desc": "Malversation or misappropriation of company funds.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Malversation ng Pondo ng Kumpanya", "desc_tl": "Malversation o hindi wastong paggamit ng pondo ng kumpanya."}, {"id": "V003", "category": "Integrity & Honesty (Class A)", "name": "Fraud", "desc": "Fraud or any form of deceitful act against the company.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pandaraya (Fraud)", "desc_tl": "Pandaraya o anumang uri ng mapanlinlang na gawain laban sa kumpanya."}, {"id": "V004", "category": "Integrity & Honesty (Class A)", "name": "Falsification of Company Documents", "desc": "Falsification or forgery of company documents.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pamemeke ng Dokumento ng Kumpanya", "desc_tl": "Falsification o pamemeke ng mga dokumento ng kumpanya."}, {"id": "V005", "category": "Integrity & Honesty (Class A)", "name": "Falsification of Attendance/Payroll/Production/Delivery Records", "desc": "Falsification of attendance, payroll, production, or delivery records.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pamemeke ng Attendance/Payroll/Production/Delivery Records", "desc_tl": "Pamemeke ng mga attendance, payroll, production, o delivery records."}, {"id": "V006", "category": "Integrity & Honesty (Class A)", "name": "Buddy Punching", "desc": "Buddy punching, or recording/clocking attendance on behalf of another employee.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Buddy Punching", "desc_tl": "Buddy punching, o pagtatala/pag-clock ng attendance para sa ibang empleyado."}, {"id": "V007", "category": "Integrity & Honesty (Class A)", "name": "Submission of Falsified Documents", "desc": "Submitting falsified or fake documents to the company.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagsusumite ng Pekeng Dokumento", "desc_tl": "Pagsusumite ng pekeng o pinekeng dokumento sa kumpanya."}, {"id": "V008", "category": "Integrity & Honesty (Class A)", "name": "Threats, Intimidation, or Physical Harm", "desc": "Threatening, intimidating, or physically harming another person, even outside the office or site, unless done in self-defense or in defense of another.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagbabanta, Pananakot, o Pananakit", "desc_tl": "Pagbabanta, pananakot, o pananakit sa ibang tao, kahit sa labas ng opisina o site, maliban kung ito ay depensa sa sarili o sa kapwa."}, {"id": "V009", "category": "Integrity & Honesty (Class A)", "name": "Gambling on Company Premises", "desc": "Gambling within the plant, barracks, or company premises, including during work hours.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Integridad at Katapatan (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagsusugal sa Loob ng Kumpanya", "desc_tl": "Pagsusugal sa loob ng planta, barracks, o company premises, kabilang na ang oras ng trabaho."}, {"id": "V010", "category": "GMP, Food Safety & Biosecurity (Class A)", "name": "Deliberate Violation of GMP Procedures", "desc": "Intentional/deliberate violation of Good Manufacturing Practice (GMP) procedures.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Sadyang Paglabag sa GMP Procedures", "desc_tl": "Sadyang paglabag sa Good Manufacturing Practice (GMP) procedures."}, {"id": "V011", "category": "GMP, Food Safety & Biosecurity (Class A)", "name": "Deliberate Product Contamination", "desc": "Deliberately causing contamination of the product.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Sadyang Pagdudulot ng Kontaminasyon sa Produkto", "desc_tl": "Sadyang pagdudulot ng kontaminasyon sa produkto."}, {"id": "V012", "category": "GMP, Food Safety & Biosecurity (Class A)", "name": "Non-Compliance with Food Safety Procedures (High Risk)", "desc": "Non-compliance with food safety procedures that may endanger product quality and safety.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Pagsunod sa Food Safety Procedures", "desc_tl": "Hindi pagsunod sa food safety procedures na maaaring magdulot ng panganib sa kalidad at kaligtasan ng produkto."}, {"id": "V013", "category": "GMP, Food Safety & Biosecurity (Class A)", "name": "Violation of Biosecurity Procedures", "desc": "Violation of established biosecurity procedures.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Paglabag sa Biosecurity Procedures", "desc_tl": "Paglabag sa itinakdang biosecurity procedures."}, {"id": "V014", "category": "GMP, Food Safety & Biosecurity (Class A)", "name": "Unauthorized Entry to Restricted Production Areas", "desc": "Entering restricted production areas without authorization.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Awtorisadong Pagpasok sa Restricted Production Areas", "desc_tl": "Pagpasok sa restricted production areas nang walang pahintulot."}, {"id": "V015", "category": "GMP, Food Safety & Biosecurity (Class A)", "name": "Bringing Prohibited Items into Production Areas", "desc": "Bringing prohibited items or objects into production areas.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagdadala ng Ipinagbabawal na Bagay sa Production Areas", "desc_tl": "Pagdadala ng mga ipinagbabawal na bagay o item sa production areas."}, {"id": "V016", "category": "Safety & Security (Class A)", "name": "Physical Assault", "desc": "Physical assault or inflicting bodily harm on another person.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pisikal na Pananakit", "desc_tl": "Pisikal na pananakit o pananakit sa katawan ng ibang tao."}, {"id": "V017", "category": "Safety & Security (Class A)", "name": "Fighting Within Company Premises", "desc": "Engaging in a fight or physical altercation within company premises.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pakikipag-away sa Loob ng Kumpanya", "desc_tl": "Pakikipag-away o physical na alitan sa loob ng company premises."}, {"id": "V018", "category": "Safety & Security (Class A)", "name": "Intimidation of a Fellow Employee", "desc": "Intimidating or threatening a fellow employee.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pananakot sa Kapwa Empleyado", "desc_tl": "Pananakot o pagbabanta sa kapwa empleyado."}, {"id": "V019", "category": "Safety & Security (Class A)", "name": "Bringing Weapons Onto Company Premises", "desc": "Bringing weapons inside the company premises.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagdadala ng Armas sa Loob ng Kumpanya", "desc_tl": "Pagdadala ng armas sa loob ng company premises."}, {"id": "V020", "category": "Safety & Security (Class A)", "name": "Possession or Use of Prohibited Drugs", "desc": "Bringing in, possessing, or using prohibited drugs.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagdadala o Paggamit ng Ipinagbabawal na Gamot", "desc_tl": "Pagdadala, pagmamay-ari, o paggamit ng ipinagbabawal na gamot."}, {"id": "V021", "category": "Safety & Security (Class A)", "name": "Reporting to Work Under the Influence", "desc": "Reporting to or being at work under the influence of alcohol or prohibited drugs.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagpasok sa Trabaho Habang Nasa Impluwensya ng Alak o Bawal na Gamot", "desc_tl": "Pagpasok o pagiging nasa trabaho habang nasa impluwensya ng alak o ipinagbabawal na gamot."}, {"id": "V022", "category": "Safety & Security (Class A)", "name": "Unauthorized Meetings/Outings with Employees", "desc": "Holding unauthorized meetings or outings with fellow employees without the knowledge of a superior.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Walang Pahintulot na Meetings/Outings Kasama ang mga Empleyado", "desc_tl": "Walang pahintulot na pagdaraos ng meetings o outings kasama ang mga kapwa empleyado na hindi alam ng superior."}, {"id": "V023", "category": "Safety & Security (Class A)", "name": "Unauthorized Entry of Visitors to Restricted Areas", "desc": "Allowing visitors into restricted areas within the company or site without authorization.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Walang Pahintulot na Pagpasok ng Bisita sa Restricted Areas", "desc_tl": "Pagpapapasok ng bisita sa mga bawal na lugar sa loob ng kumpanya o site nang walang pahintulot."}, {"id": "V024", "category": "Safety & Security (Class A)", "name": "Refusal to Comply with Safety & Security Procedures", "desc": "Refusing to comply with legitimate safety and security procedures.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Safety at Security (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagtanggi sa Pagsunod sa Safety at Security Procedures", "desc_tl": "Pagtanggihang sumunod sa mga lehitimong safety at security procedures."}, {"id": "V025", "category": "Company Property (Class A)", "name": "Deliberate Destruction of Company Property", "desc": "Deliberate destruction of, or damage to, company equipment or facilities.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Company Property (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Sadyang Pagsira sa Ari-arian ng Kumpanya", "desc_tl": "Sadyang pagsira o pagdulot ng pinsala sa kagamitan o pasilidad ng kumpanya."}, {"id": "V026", "category": "Company Property (Class A)", "name": "Unauthorized Taking of Company Property", "desc": "Unauthorized taking of company property.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Company Property (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Awtorisadong Pagkuha ng Company Property", "desc_tl": "Hindi awtorisadong pagkuha ng ari-arian ng kumpanya."}, {"id": "V027", "category": "Company Property (Class A)", "name": "Unauthorized Personal Use of Company Property", "desc": "Using company property for personal benefit or gain without authorization.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Company Property (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Awtorisadong Personal na Paggamit ng Company Property", "desc_tl": "Paggamit ng company property para sa personal na pakinabang nang walang pahintulot."}, {"id": "V028", "category": "Workplace Conduct (Class A)", "name": "Grave Insubordination", "desc": "Serious insubordination, or deliberate refusal to follow the legitimate orders of a superior.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Matinding Insubordination", "desc_tl": "Matinding insubordination o sadyang hindi pagsunod sa lehitimong utos ng nakatataas."}, {"id": "V029", "category": "Workplace Conduct (Class A)", "name": "Failure to Attend Office/Plant Gatherings", "desc": "Failure to attend mandatory Office or Plant meetings/gatherings.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Pagdalo sa mga Pagtitipon ng Opisina o Planta", "desc_tl": "Hindi pagdalo sa mahalagang pagtitipon ng Opisina o Planta."}, {"id": "V030", "category": "Workplace Conduct (Class A)", "name": "Bullying", "desc": "Bullying of a fellow employee.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pambubully", "desc_tl": "Pambubully sa kapwa empleyado."}, {"id": "V031", "category": "Workplace Conduct (Class A)", "name": "Sexual Harassment", "desc": "Committing sexual harassment against another person.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Sexual Harassment", "desc_tl": "Paggawa ng sexual harassment laban sa ibang tao."}, {"id": "V032", "category": "Workplace Conduct (Class A)", "name": "Discrimination", "desc": "Discrimination against a fellow employee.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Discrimination", "desc_tl": "Discrimination laban sa kapwa empleyado."}, {"id": "V033", "category": "Workplace Conduct (Class A)", "name": "Threatening a Fellow Employee", "desc": "Threatening a fellow employee.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagbabanta sa Kapwa Empleyado", "desc_tl": "Pagbabanta sa kapwa empleyado."}, {"id": "V034", "category": "Workplace Conduct (Class A)", "name": "Causing Disturbance Affecting Operations", "desc": "Causing a disturbance that affects company operations.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Workplace Conduct (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Paglikha ng Kaguluhan na Nakaaapekto sa Operasyon", "desc_tl": "Paglikha ng kaguluhan na nakaaapekto sa operasyon ng kumpanya."}, {"id": "V035", "category": "Confidentiality (Class A)", "name": "Unauthorized Disclosure of Confidential Information", "desc": "Unauthorized disclosure or sharing of confidential company information.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Confidentiality (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Awtorisadong Pagbabahagi ng Kumpidensyal na Impormasyon", "desc_tl": "Hindi awtorisadong pagbabahagi ng kumpidensyal na impormasyon ng kumpanya."}, {"id": "V036", "category": "Confidentiality (Class A)", "name": "Unauthorized Release of Company Documents", "desc": "Releasing company documents to unauthorized parties without permission.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Confidentiality (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Hindi Awtorisadong Paglalabas ng Dokumento ng Kumpanya", "desc_tl": "Paglalabas ng mga dokumento ng kumpanya sa mga hindi awtorisadong tao nang walang pahintulot."}, {"id": "V037", "category": "Confidentiality (Class A)", "name": "Sharing of Payroll/Production/Customer Data", "desc": "Sharing payroll records, production data, customer information, or other sensitive information without authorization.", "severity": "Critical", "action": "Suspension to Termination (per investigation & due process)", "status": "Active", "category_tl": "Confidentiality (Class A)", "severity_tl": "Malubha", "action_tl": "Suspension hanggang Termination (batay sa imbestigasyon at due process)", "name_tl": "Pagbabahagi ng Payroll/Production/Customer Data", "desc_tl": "Pagbabahagi ng payroll records, production data, customer information, o iba pang sensitibong impormasyon nang walang pahintulot."}, {"id": "V038", "category": "Attendance & Timekeeping (Class B)", "name": "Absence Without Official Leave (AWOL)", "desc": "Absence without notice, without permission, and without approved leave (AWOL).", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Pagliban nang Walang Aprubadong Leave (AWOL)", "desc_tl": "Pagliban nang walang paalam, walang pahintulot, at walang aprubadong leave (AWOL)."}, {"id": "V039", "category": "Attendance & Timekeeping (Class B)", "name": "Habitual Tardiness", "desc": "Repeated/habitual tardiness in reporting for work.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paulit-ulit na Pagkahuli", "desc_tl": "Paulit-ulit o abitwal na pagkahuli sa pagpasok sa trabaho."}, {"id": "V040", "category": "Attendance & Timekeeping (Class B)", "name": "Habitual Undertime", "desc": "Repeated/habitual undertime.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paulit-ulit na Undertime", "desc_tl": "Paulit-ulit o abitwal na undertime."}, {"id": "V041", "category": "Attendance & Timekeeping (Class B)", "name": "Leaving Work Without Notice", "desc": "Leaving the workplace without notice and without the permission of the immediate superior.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Pag-alis sa Trabaho nang Walang Paalam", "desc_tl": "Pag-alis sa trabaho nang walang paalam at walang pahintulot ng immediate superior."}, {"id": "V042", "category": "Attendance & Timekeeping (Class B)", "name": "Excessive Unauthorized Absences", "desc": "Three (3) or more unauthorized absences within one (1) month.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Labis na Hindi Awtorisadong Pagliban", "desc_tl": "Tatlo (3) o higit pang hindi awtorisadong pagliban sa loob ng isang (1) buwan."}, {"id": "V043", "category": "Attendance & Timekeeping (Class B)", "name": "Improper Use of Biometrics System", "desc": "Improper or incorrect use of the biometrics attendance system.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Wastong Paggamit ng Biometrics System", "desc_tl": "Hindi wastong o maling paggamit ng biometrics attendance system."}, {"id": "V044", "category": "Attendance & Timekeeping (Class B)", "name": "Failure to Submit Attendance Correction Form", "desc": "Failure to submit the required attendance correction form.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsusumite ng Attendance Correction Form", "desc_tl": "Hindi pagsusumite ng kinakailangang attendance correction form."}, {"id": "V045", "category": "Work Performance (Class B)", "name": "Failure to Follow Established Work Procedures", "desc": "Failure to follow established work procedures/methods.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Work Performance (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa Itinakdang Pamamaraan sa Trabaho", "desc_tl": "Hindi pagsunod sa mga itinakdang pamamaraan o proseso sa trabaho."}, {"id": "V046", "category": "Work Performance (Class B)", "name": "Repeated Poor Quality of Work", "desc": "Repeated/habitual poor quality of work output.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Work Performance (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paulit-ulit na Mababang Kalidad ng Trabaho", "desc_tl": "Paulit-ulit o abitwal na mababang kalidad ng output sa trabaho."}, {"id": "V047", "category": "Work Performance (Class B)", "name": "Failure to Meet Production Standards", "desc": "Failure to follow established production standards.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Work Performance (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa Production Standards", "desc_tl": "Hindi pagsunod sa mga itinakdang production standards."}, {"id": "V048", "category": "Work Performance (Class B)", "name": "Negligence Causing Operational Delay", "desc": "Negligence resulting in delay or disruption of operations.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Work Performance (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Kapabayaan na Nagdudulot ng Pagkaantala sa Operasyon", "desc_tl": "Kapabayaan na nagdudulot ng pagkaantala o pagkagambala sa operasyon."}, {"id": "V049", "category": "GMP, Food Safety & Biosecurity (Class B)", "name": "Failure to Wear Proper PPE", "desc": "Failure to wear the proper Personal Protective Equipment (PPE).", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsuot ng Tamang PPE", "desc_tl": "Hindi pagsuot ng tamang Personal Protective Equipment (PPE)."}, {"id": "V050", "category": "GMP, Food Safety & Biosecurity (Class B)", "name": "Non-Compliance with Personal Hygiene Requirements", "desc": "Failure to comply with personal hygiene requirements.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa Personal Hygiene Requirements", "desc_tl": "Hindi pagsunod sa mga kinakailangang personal hygiene requirements."}, {"id": "V051", "category": "GMP, Food Safety & Biosecurity (Class B)", "name": "Improper Use of Locker", "desc": "Improper or incorrect use of the assigned locker.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Wastong Paggamit ng Locker", "desc_tl": "Hindi wastong o maling paggamit ng itinalagang locker."}, {"id": "V052", "category": "GMP, Food Safety & Biosecurity (Class B)", "name": "Unauthorized Food/Drink in Production Area", "desc": "Bringing unauthorized food or drink into the production area.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Awtorisadong Pagkain/Inumin sa Production Area", "desc_tl": "Pagdadala ng hindi awtorisadong pagkain o inumin sa production area."}, {"id": "V053", "category": "GMP, Food Safety & Biosecurity (Class B)", "name": "Non-Compliance with Sanitation Procedures", "desc": "Failure to comply with sanitation procedures.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa Sanitation Procedures", "desc_tl": "Hindi pagsunod sa mga sanitation procedures."}, {"id": "V054", "category": "GMP, Food Safety & Biosecurity (Class B)", "name": "Violation of Restricted Area Rules", "desc": "Violation of the rules governing restricted areas.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "GMP, Food Safety, at Biosecurity (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paglabag sa mga Patakaran sa Restricted Areas", "desc_tl": "Paglabag sa mga patakaran na sumasaklaw sa restricted areas."}, {"id": "V055", "category": "Safety & Security (Class B)", "name": "Failure to Observe Safety Signs/Warning Notices", "desc": "Failure to observe posted safety signs and warning notices.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Safety at Security (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa mga Safety Sign/Warning Notices", "desc_tl": "Hindi pagsunod sa mga ipinaskil na safety sign at warning notices."}, {"id": "V056", "category": "Safety & Security (Class B)", "name": "Failure to Report Accident/Incident", "desc": "Failure to report an accident or incident.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Safety at Security (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pag-uulat ng Aksidente o Insidente", "desc_tl": "Hindi pag-uulat ng aksidente o insidente."}, {"id": "V057", "category": "Safety & Security (Class B)", "name": "Violation of Established Safety Procedures", "desc": "Violation of established safety procedures.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Safety at Security (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paglabag sa mga Itinakdang Safety Procedures", "desc_tl": "Paglabag sa mga itinakdang safety procedures."}, {"id": "V058", "category": "Safety & Security (Class B)", "name": "Non-Compliance with Company Security Guidelines", "desc": "Failure to comply with the company's security guidelines.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Safety at Security (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa Security Guidelines ng Kumpanya", "desc_tl": "Hindi pagsunod sa mga alituntunin sa seguridad ng kumpanya."}, {"id": "V059", "category": "Workplace Conduct (Class B)", "name": "Selling Goods on Company Premises During Work Hours", "desc": "Selling any goods (e.g., dry goods, food, jewelry, etc.) within the site or office during work hours.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Pagbebenta ng Kalakal sa Loob ng Kumpanya Habang Oras ng Trabaho", "desc_tl": "Pagbebenta ng kung anu-anong gamit (dry goods, pagkain, alahas, atbp.) sa loob ng site o opisina habang oras ng trabaho."}, {"id": "V060", "category": "Workplace Conduct (Class B)", "name": "Borrowing/Lending Money Among Employees", "desc": "Borrowing money from, or lending money to, a fellow employee.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Panghihiram o Pagpapahiram ng Pera sa Kapwa Empleyado", "desc_tl": "Panghihiram ng pera mula sa, o pagpapahiram ng pera sa, kapwa empleyado."}, {"id": "V061", "category": "Workplace Conduct (Class B)", "name": "Using the Locker Room as a Hangout Area", "desc": "Using the locker room as a hangout/loitering area.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paggamit ng Locker Room Bilang Tambayan", "desc_tl": "Paggamit ng locker room bilang tambayan."}, {"id": "V062", "category": "Workplace Conduct (Class B)", "name": "Creating Unnecessary Noise in the Workplace", "desc": "Creating unnecessary noise in the workplace.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paglikha ng Hindi Kinakailangang Ingay sa Trabaho", "desc_tl": "Paglikha ng hindi kinakailangang ingay sa lugar ng trabaho."}, {"id": "V063", "category": "Workplace Conduct (Class B)", "name": "Use of Inappropriate Language", "desc": "Use of inappropriate or offensive language.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Paggamit ng Hindi Naaangkop na Pananalita", "desc_tl": "Paggamit ng hindi naaangkop o bastos na pananalita."}, {"id": "V064", "category": "Workplace Conduct (Class B)", "name": "Disrespect Toward a Fellow Employee", "desc": "Lack of respect or courtesy toward a fellow employee.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Kawalan ng Paggalang sa Kapwa Empleyado", "desc_tl": "Kawalan ng paggalang o kagandahang-loob sa kapwa empleyado."}, {"id": "V065", "category": "Workplace Conduct (Class B)", "name": "Failure to Follow Supervisor's Directives", "desc": "Failure to follow the lawful directives of a supervisor.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Workplace Conduct (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa mga Direktiba ng Supervisor", "desc_tl": "Hindi pagsunod sa mga lehitimong direktiba ng supervisor."}, {"id": "V066", "category": "Housekeeping & Company Facilities (Class B)", "name": "Non-Compliance with CLAYGO Policy", "desc": "Failure to comply with the Clean-As-You-Go (CLAYGO) policy.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Housekeeping at Company Facilities (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa CLAYGO Policy", "desc_tl": "Hindi pagsunod sa Clean-As-You-Go (CLAYGO) policy."}, {"id": "V067", "category": "Housekeeping & Company Facilities (Class B)", "name": "Improper Waste Disposal", "desc": "Improper disposal of waste/garbage.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Housekeeping at Company Facilities (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Wastong Pagtatapon ng Basura", "desc_tl": "Hindi wastong pagtatapon ng basura."}, {"id": "V068", "category": "Housekeeping & Company Facilities (Class B)", "name": "Leaving Clutter in the Work Area", "desc": "Leaving clutter or mess in the work area.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Housekeeping at Company Facilities (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Pag-iiwan ng Kalat sa Work Area", "desc_tl": "Pag-iiwan ng kalat sa work area."}, {"id": "V069", "category": "Housekeeping & Company Facilities (Class B)", "name": "Non-Compliance with 5S Program", "desc": "Failure to comply with the company's 5S program.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Housekeeping at Company Facilities (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Pagsunod sa 5S Program", "desc_tl": "Hindi pagsunod sa 5S program ng kumpanya."}, {"id": "V070", "category": "Housekeeping & Company Facilities (Class B)", "name": "Improper Use of Cafeteria/Company Facilities", "desc": "Improper use of the cafeteria or other company facilities.", "severity": "Major", "action": "Written Warning", "status": "Active", "category_tl": "Housekeeping at Company Facilities (Class B)", "severity_tl": "Malaki", "action_tl": "Written Warning", "name_tl": "Hindi Wastong Paggamit ng Cafeteria/Pasilidad ng Kumpanya", "desc_tl": "Hindi wastong paggamit ng cafeteria o iba pang pasilidad ng kumpanya."}, {"id": "V071", "category": "Attendance & Timekeeping (Class C)", "name": "Occasional Tardiness", "desc": "Occasional tardiness in reporting for work.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Paminsan-minsang Pagkahuli", "desc_tl": "Paminsan-minsang pagkahuli sa pagpasok sa trabaho."}, {"id": "V072", "category": "Attendance & Timekeeping (Class C)", "name": "Failure to Immediately Report Expected Tardiness", "desc": "Failure to immediately notify a superior of expected tardiness.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Agad na Pag-alam ng Inaasahang Pagkahuli", "desc_tl": "Hindi agad naipaalam sa superior ang inaasahang pagkahuli."}, {"id": "V073", "category": "Attendance & Timekeeping (Class C)", "name": "Failure to Time In/Time Out", "desc": "Failure to time in or time out as required.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Pagkabigong Mag-time In/Time Out", "desc_tl": "Pagkabigong mag-time in o mag-time out gaya ng kinakailangan."}, {"id": "V074", "category": "Attendance & Timekeeping (Class C)", "name": "Failure to Immediately Report Incorrect Attendance Record", "desc": "Failure to immediately report an incorrect attendance record.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Attendance at Timekeeping (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Agad na Pag-uulat ng Maling Attendance Record", "desc_tl": "Hindi agad naiuulat ang maling attendance record."}, {"id": "V075", "category": "Dress Code & PPE (Class C)", "name": "Improper Wearing of Uniform", "desc": "Improper or incomplete wearing of the company uniform.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Dress Code at PPE (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Wastong Pagsuot ng Uniporme", "desc_tl": "Hindi wastong o hindi kumpletong pagsuot ng uniporme ng kumpanya."}, {"id": "V076", "category": "Dress Code & PPE (Class C)", "name": "Incomplete PPE", "desc": "Incomplete wearing of Personal Protective Equipment (PPE).", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Dress Code at PPE (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Kumpletong PPE", "desc_tl": "Hindi kumpletong pagsuot ng Personal Protective Equipment (PPE)."}, {"id": "V077", "category": "Dress Code & PPE (Class C)", "name": "Failure to Wear Hairnet/Mask/Gloves/Other Required PPE", "desc": "Failure to wear hairnet, face mask, gloves, or other required protective equipment.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Dress Code at PPE (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagsuot ng Hairnet/Mask/Gloves/Iba pang Kinakailangang PPE", "desc_tl": "Hindi pagsuot ng hairnet, face mask, gloves, o iba pang kinakailangang protective equipment."}, {"id": "V078", "category": "Housekeeping & Cleanliness (Class C)", "name": "Non-Compliance with CLAYGO Policy", "desc": "Failure to comply with the Clean-As-You-Go (CLAYGO) policy.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Housekeeping at Kalinisan (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagsunod sa CLAYGO Policy", "desc_tl": "Hindi pagsunod sa Clean-As-You-Go (CLAYGO) policy."}, {"id": "V079", "category": "Housekeeping & Cleanliness (Class C)", "name": "Improper Waste Disposal", "desc": "Improper disposal of waste/garbage.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Housekeeping at Kalinisan (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Wastong Pagtatapon ng Basura", "desc_tl": "Hindi wastong pagtatapon ng basura."}, {"id": "V080", "category": "Housekeeping & Cleanliness (Class C)", "name": "Leaving Clutter in the Work Area", "desc": "Leaving clutter or mess in the work area.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Housekeeping at Kalinisan (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Pag-iiwan ng Kalat sa Work Area", "desc_tl": "Pag-iiwan ng kalat sa work area."}, {"id": "V081", "category": "Housekeeping & Cleanliness (Class C)", "name": "Non-Compliance with 5S Program", "desc": "Failure to comply with the company's 5S program.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Housekeeping at Kalinisan (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagsunod sa 5S Program", "desc_tl": "Hindi pagsunod sa 5S program ng kumpanya."}, {"id": "V082", "category": "Housekeeping & Cleanliness (Class C)", "name": "Failure to Keep Locker Clean", "desc": "Failure to keep the assigned locker clean and orderly.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Housekeeping at Kalinisan (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagpapanatiling Malinis ang Locker", "desc_tl": "Hindi pagpapanatiling malinis at maayos ang itinalagang locker."}, {"id": "V083", "category": "Workplace Conduct (Class C)", "name": "Using the Locker Room as a Hangout Area", "desc": "Using the locker room as a hangout/loitering area.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Workplace Conduct (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Paggamit ng Locker Room Bilang Tambayan", "desc_tl": "Paggamit ng locker room bilang tambayan."}, {"id": "V084", "category": "Workplace Conduct (Class C)", "name": "Creating Unnecessary Noise", "desc": "Creating unnecessary noise in the workplace.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Workplace Conduct (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Paglikha ng Hindi Kinakailangang Ingay", "desc_tl": "Paglikha ng hindi kinakailangang ingay sa lugar ng trabaho."}, {"id": "V085", "category": "Workplace Conduct (Class C)", "name": "Failure to Follow Posted Reminders", "desc": "Failure to follow posted reminders/notices.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Workplace Conduct (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagsunod sa mga Ipinaskil na Paalala", "desc_tl": "Hindi pagsunod sa mga ipinaskil na paalala o notice."}, {"id": "V086", "category": "Workplace Conduct (Class C)", "name": "Improper Use of Cafeteria", "desc": "Improper use of the company cafeteria.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Workplace Conduct (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Wastong Paggamit ng Cafeteria", "desc_tl": "Hindi wastong paggamit ng cafeteria ng kumpanya."}, {"id": "V087", "category": "Workplace Conduct (Class C)", "name": "Non-Compliance with Common Area Rules", "desc": "Failure to comply with the rules governing common areas.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Workplace Conduct (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagsunod sa mga Patakaran sa Common Areas", "desc_tl": "Hindi pagsunod sa mga patakarang sumasaklaw sa common areas."}, {"id": "V088", "category": "Company Property at Facilities (Class C)", "name": "Personal Overuse of Mobile Phone", "desc": "Excessive personal use of mobile phone (exceeding allotted phone plan/usage) during work.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Company Property sa Facilities (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Sobrang Personal na Paggamit ng Mobile Phone", "desc_tl": "Sobrang personal na paggamit ng mobile phone (lampas sa itinakdang phone plan/usage) habang nasa trabaho."}, {"id": "V089", "category": "Company Property at Facilities (Class C)", "name": "Failure to Return Equipment to Proper Place", "desc": "Failure to return company equipment/items to their proper place.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Company Property sa Facilities (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Pagsasauli ng Kagamitan sa Tamang Lugar", "desc_tl": "Hindi pagsasauli ng kagamitan ng kumpanya sa tamang lugar."}, {"id": "V090", "category": "Company Property at Facilities (Class C)", "name": "Improper Use of Company Facilities", "desc": "Improper use of company facilities.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Company Property sa Facilities (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Hindi Wastong Paggamit ng Pasilidad ng Kumpanya", "desc_tl": "Hindi wastong paggamit ng mga pasilidad ng kumpanya."}, {"id": "V091", "category": "Company Property at Facilities (Class C)", "name": "Negligence with Entrusted Equipment", "desc": "Negligence in the care of entrusted company equipment.", "severity": "Minor", "action": "Verbal Warning", "status": "Active", "category_tl": "Company Property sa Facilities (Class C)", "severity_tl": "Menor", "action_tl": "Verbal Warning", "name_tl": "Pagpapabaya sa mga Ipinagkatiwalang Kagamitan", "desc_tl": "Pagpapabaya sa pag-aalaga ng mga ipinagkatiwalang kagamitan ng kumpanya."}]</script>
+
+<script>
+const EMPLOYEES = JSON.parse(document.getElementById('employees-data').textContent);
+const VIOLATIONS = JSON.parse(document.getElementById('violations-data').textContent).map((v,i)=>Object.assign({_id:'base-'+i}, v));
+
+let CASES = [];
+let ADDED_EMPLOYEES = [];
+let EMP_OVERRIDES = {}; // empId -> { status, dept, position }
+let ADDED_VIOLATIONS = [];
+let selectedEmp = null;
+let selectedViol = null;
+let selectedStatus = 'Served';
+
+const STATUS_OPTIONS = ['REGULAR','PROBATIONARY','ON LEAVE','AWOL','RESIGNED','TERMINATED','RETIRED'];
+
+// ---------- storage ----------
+async function loadCases(){
+  try{
+    const res = await window.storage.get('disciplinary-cases', false);
+    if(res && res.value){ CASES = JSON.parse(res.value); }
+  }catch(e){ CASES = []; }
+}
+async function saveCases(){
+  try{ await window.storage.set('disciplinary-cases', JSON.stringify(CASES), false); }
+  catch(e){ console.error('save failed', e); }
+}
+async function loadEmployeeChanges(){
+  try{
+    const res = await window.storage.get('added-employees', false);
+    if(res && res.value){ ADDED_EMPLOYEES = JSON.parse(res.value); }
+  }catch(e){ ADDED_EMPLOYEES = []; }
+  try{
+    const res2 = await window.storage.get('employee-overrides', false);
+    if(res2 && res2.value){ EMP_OVERRIDES = JSON.parse(res2.value); }
+  }catch(e){ EMP_OVERRIDES = {}; }
+}
+async function saveAddedEmployees(){
+  try{ await window.storage.set('added-employees', JSON.stringify(ADDED_EMPLOYEES), false); }
+  catch(e){ console.error('save failed', e); }
+}
+async function saveEmpOverrides(){
+  try{ await window.storage.set('employee-overrides', JSON.stringify(EMP_OVERRIDES), false); }
+  catch(e){ console.error('save failed', e); }
+}
+function getAllEmployees(){
+  const combined = EMPLOYEES.concat(ADDED_EMPLOYEES);
+  return combined.map(e=>{
+    const override = EMP_OVERRIDES[e.id];
+    return override ? Object.assign({}, e, override) : e;
+  });
+}
+async function loadAddedViolations(){
+  try{
+    const res = await window.storage.get('added-violations', false);
+    if(res && res.value){ ADDED_VIOLATIONS = JSON.parse(res.value); }
+  }catch(e){ ADDED_VIOLATIONS = []; }
+}
+async function saveAddedViolations(){
+  try{ await window.storage.set('added-violations', JSON.stringify(ADDED_VIOLATIONS), false); }
+  catch(e){ console.error('save failed', e); }
+}
+function getAllViolations(){
+  return VIOLATIONS.concat(ADDED_VIOLATIONS);
+}
+
+// ---------- helpers ----------
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function sevClass(sev){
+  if(!sev) return 'minor';
+  const s = sev.toLowerCase();
+  if(s.includes('crit')) return 'critical';
+  if(s.includes('major')) return 'major';
+  return 'minor';
+}
+function statusClass(st){
+  if(!st) return 'served';
+  const s = st.toLowerCase();
+  if(s.includes('closed')) return 'closed';
+  if(s.includes('ongoing')) return 'ongoing';
+  return 'served';
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+// ---------- navigation ----------
+const titles = {
+  dashboard:['Dashboard','Overview of personnel and active disciplinary matters'],
+  employees:['Employees','Complete masterlist of active personnel'],
+  file:['File a Case','Record a new violation and set notice status'],
+  cases:['Case Records','All disciplinary records on file'],
+  analytics:['Violation Analytics','Conduct trends across the organization, updated in real time'],
+  violations:['Violation Reference','Standard violation categories and recommended actions']
+};
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    const view = item.dataset.view;
+    document.getElementById('view-'+view).classList.add('active');
+    document.getElementById('topbar-title').textContent = titles[view][0];
+    document.getElementById('topbar-sub').textContent = titles[view][1];
+    if(view==='dashboard') renderDashboard();
+    if(view==='cases') renderCasesTable();
+    if(view==='analytics') renderAnalytics();
+  });
+});
+
+document.getElementById('today-pill').textContent = new Date().toLocaleDateString('en-US',{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+// ---------- Employees view ----------
+const deptFilterSel = document.getElementById('emp-dept-filter');
+const statusFilterSel = document.getElementById('emp-status-filter');
+const statusDisplay = { 'REGULAR':'Regular','PROBATIONARY':'Probationary','ON LEAVE':'On Leave','AWOL':'AWOL','RESIGNED':'Resigned','TERMINATED':'Terminated','RETIRED':'Retired' };
+
+function statusBadgeClass(st){
+  const s = (st||'').toUpperCase();
+  if(s==='REGULAR') return 'regular';
+  if(s==='PROBATIONARY') return 'probationary';
+  if(s==='RESIGNED' || s==='TERMINATED') return 'critical';
+  if(s==='AWOL') return 'major';
+  if(s==='ON LEAVE') return 'ongoing';
+  if(s==='RETIRED') return 'closed';
+  return 'probationary';
+}
+
+function refreshFilterOptions(){
+  const all = getAllEmployees();
+  const deptSet = [...new Set(all.map(e=>e.dept).filter(Boolean))].sort();
+  const curDept = deptFilterSel.value;
+  deptFilterSel.innerHTML = '<option value="">All Departments</option>' + deptSet.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+  if(deptSet.includes(curDept)) deptFilterSel.value = curDept;
+
+  const curStatus = statusFilterSel.value;
+  statusFilterSel.innerHTML = '<option value="">All Status</option>' + STATUS_OPTIONS.map(s=>`<option value="${s}">${statusDisplay[s]}</option>`).join('');
+  statusFilterSel.value = curStatus;
+
+  // datalist for add-employee modal
+  document.getElementById('dept-datalist').innerHTML = deptSet.map(d=>`<option value="${escapeHtml(d)}">`).join('');
+}
+
+function violationCount(empId){
+  return CASES.filter(c=>String(c.empId)===String(empId)).length;
+}
+function violCountBadgeClass(n){
+  if(n===0) return 'closed';
+  if(n>=3) return 'critical';
+  return 'served';
+}
+
+function renderEmpTable(){
+  const q = document.getElementById('emp-search').value.trim().toLowerCase();
+  const dept = document.getElementById('emp-dept-filter').value;
+  const status = document.getElementById('emp-status-filter').value;
+  const all = getAllEmployees();
+  let rows = all.filter(e=>{
+    if(dept && e.dept !== dept) return false;
+    if(status && (e.status||'').toUpperCase() !== status) return false;
+    if(q && !(e.name.toLowerCase().includes(q) || String(e.id).includes(q))) return false;
+    return true;
+  });
+  const body = document.getElementById('emp-table-body');
+  if(rows.length===0){
+    body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>No employees match your search.</p></div></td></tr>`;
+  } else {
+    body.innerHTML = rows.map(e=>{
+      const n = violationCount(e.id);
+      return `
+      <tr>
+        <td><div class="emp-name">${escapeHtml(e.name)}</div><div class="emp-id">ID ${escapeHtml(e.id)}</div></td>
+        <td>${escapeHtml(e.dept)}</td>
+        <td>${escapeHtml(e.position)}</td>
+        <td>${fmtDate(e.hired)}</td>
+        <td><span class="badge ${statusBadgeClass(e.status)}">${escapeHtml(statusDisplay[(e.status||'').toUpperCase()] || e.status || '—')}</span></td>
+        <td>${n>0
+              ? `<span class="badge ${violCountBadgeClass(n)} viol-count-link" data-empid="${escapeHtml(e.id)}" style="cursor:pointer;">${n} case${n===1?'':'s'}</span>`
+              : `<span class="badge closed">0 cases</span>`}</td>
+        <td><button class="row-action" data-empid="${escapeHtml(e.id)}">Edit</button></td>
+      </tr>
+    `;}).join('');
+  }
+  document.getElementById('emp-table-foot').textContent = `Showing ${rows.length} of ${all.length} employees`;
+}
+document.getElementById('emp-search').addEventListener('input', renderEmpTable);
+deptFilterSel.addEventListener('change', renderEmpTable);
+statusFilterSel.addEventListener('change', renderEmpTable);
+
+document.getElementById('emp-table-body').addEventListener('click', (ev)=>{
+  const countLink = ev.target.closest('.viol-count-link');
+  if(countLink){ openEmpViolationsModal(countLink.dataset.empid); return; }
+  const btn = ev.target.closest('.row-action');
+  if(!btn) return;
+  openStatusModal(btn.dataset.empid);
+});
+
+// ---------- Violation reference table ----------
+let violTagalogOn = false;
+try{ violTagalogOn = localStorage.getItem('viol-lang-tl') === '1'; }catch(e){ violTagalogOn = false; }
+
+function initViolLangToggle(){
+  const toggle = document.getElementById('viol-lang-toggle');
+  const wrap = document.getElementById('viol-lang-toggle-wrap');
+  if(!toggle) return;
+  toggle.checked = violTagalogOn;
+  wrap.classList.toggle('tl-active', violTagalogOn);
+  toggle.addEventListener('change', ()=>{
+    violTagalogOn = toggle.checked;
+    wrap.classList.toggle('tl-active', violTagalogOn);
+    try{ localStorage.setItem('viol-lang-tl', violTagalogOn ? '1' : '0'); }catch(e){}
+    renderViolTable();
+  });
+}
+
+const violTheadEN = ['Category','Violation','Description','Severity','Recommended Action',''];
+const violTheadTL = ['Kategorya','Paglabag','Paglalarawan','Bigat ng Paglabag','Inirerekomendang Aksyon',''];
+function renderViolThead(){
+  const ths = document.querySelectorAll('#viol-thead-row th');
+  const labels = violTagalogOn ? violTheadTL : violTheadEN;
+  ths.forEach((th,i)=>{ th.textContent = labels[i]||''; });
+}
+
+function renderViolTable(){
+  renderViolThead();
+  const body = document.getElementById('viol-table-body');
+  const q = document.getElementById('viol-search').value.trim().toLowerCase();
+  const tl = violTagalogOn;
+  let rows = getAllViolations().filter(v=>{
+    if(!q) return true;
+    return (v.name||'').toLowerCase().includes(q) || (v.category||'').toLowerCase().includes(q) || (v.severity||'').toLowerCase().includes(q)
+      || (v.name_tl||'').toLowerCase().includes(q) || (v.category_tl||'').toLowerCase().includes(q);
+  });
+  if(rows.length===0){
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><p>${tl?'Walang violation na tumugma sa iyong hinahanap.':'No violations match your search.'}</p></div></td></tr>`;
+  } else {
+    body.innerHTML = rows.map(v=>{
+      const category = tl && v.category_tl ? v.category_tl : v.category;
+      const name = tl && v.name_tl ? v.name_tl : v.name;
+      const desc = tl && v.desc_tl ? v.desc_tl : v.desc;
+      const action = tl && v.action_tl ? v.action_tl : v.action;
+      return `
+      <tr>
+        <td>${escapeHtml(category)}</td>
+        <td><strong>${escapeHtml(name)}</strong></td>
+        <td style="max-width:340px;">${escapeHtml(desc)}</td>
+        <td><span class="badge ${sevClass(v.severity)}">${escapeHtml(v.severity)}</span></td>
+        <td>${escapeHtml(action)}</td>
+        <td>${String(v._id).startsWith('added-') ? `<button class="row-action" data-violid="${escapeHtml(v._id)}">${tl?'Alisin':'Remove'}</button>` : ''}</td>
+      </tr>
+    `;}).join('');
+  }
+  document.getElementById('viol-table-foot').textContent = tl
+    ? `Ipinapakita ang ${rows.length} sa ${getAllViolations().length} violations`
+    : `Showing ${rows.length} of ${getAllViolations().length} violations`;
+}
+document.getElementById('viol-search').addEventListener('input', renderViolTable);
+initViolLangToggle();
+document.getElementById('viol-table-body').addEventListener('click', async (ev)=>{
+  const btn = ev.target.closest('.row-action');
+  if(!btn || !btn.dataset.violid) return;
+  ADDED_VIOLATIONS = ADDED_VIOLATIONS.filter(v=>v._id !== btn.dataset.violid);
+  await saveAddedViolations();
+  renderViolTable();
+  toast('Violation removed.');
+});
+
+// ---------- Autocomplete: employee ----------
+const empSearchInput = document.getElementById('case-emp-search');
+const empAcList = document.getElementById('emp-ac-list');
+empSearchInput.addEventListener('input', ()=>{
+  const q = empSearchInput.value.trim().toLowerCase();
+  if(q.length===0){ empAcList.classList.remove('show'); empAcList.innerHTML=''; return; }
+  const matches = getAllEmployees().filter(e=>e.name.toLowerCase().includes(q)).slice(0,8);
+  if(matches.length===0){ empAcList.innerHTML = `<div class="ac-item" style="color:var(--gray-light);">No matching employee</div>`; }
+  else {
+    empAcList.innerHTML = matches.map(e=>`
+      <div class="ac-item" data-id="${escapeHtml(e.id)}">
+        <div class="n">${escapeHtml(e.name)}</div>
+        <div class="d">${escapeHtml(e.dept)} · ${escapeHtml(e.position)}</div>
+      </div>
+    `).join('');
+  }
+  empAcList.classList.add('show');
+});
+empAcList.addEventListener('click', (ev)=>{
+  const item = ev.target.closest('.ac-item');
+  if(!item || !item.dataset.id) return;
+  const emp = getAllEmployees().find(e=>String(e.id)===item.dataset.id);
+  if(emp){
+    selectedEmp = emp;
+    document.getElementById('emp-chip-text').textContent = `${emp.name} — ${emp.dept}`;
+    document.getElementById('emp-chip').classList.add('show');
+    empSearchInput.value='';
+    empSearchInput.style.display='none';
+    empAcList.classList.remove('show');
+  }
+});
+document.getElementById('emp-chip-clear').addEventListener('click', ()=>{
+  selectedEmp = null;
+  document.getElementById('emp-chip').classList.remove('show');
+  empSearchInput.style.display='block';
+  empSearchInput.value='';
+});
+document.addEventListener('click', (ev)=>{
+  if(!document.getElementById('emp-ac-wrap').contains(ev.target)) empAcList.classList.remove('show');
+  if(!document.getElementById('viol-ac-wrap').contains(ev.target)) violAcList.classList.remove('show');
+});
+
+// ---------- Autocomplete: violation ----------
+const violSearchInput = document.getElementById('case-viol-search');
+const violAcList = document.getElementById('viol-ac-list');
+violSearchInput.addEventListener('input', ()=>{
+  const q = violSearchInput.value.trim().toLowerCase();
+  if(q.length===0){ violAcList.classList.remove('show'); violAcList.innerHTML=''; return; }
+  const matches = getAllViolations().filter(v=>v.name.toLowerCase().includes(q) || v.category.toLowerCase().includes(q)).slice(0,8);
+  if(matches.length===0){ violAcList.innerHTML = `<div class="ac-item" style="color:var(--gray-light);">No matching violation</div>`; }
+  else {
+    violAcList.innerHTML = matches.map(v=>`
+      <div class="ac-item" data-vid="${escapeHtml(v._id)}">
+        <div class="n">${escapeHtml(v.name)}</div>
+        <div class="d">${escapeHtml(v.category)} · ${escapeHtml(v.severity)}</div>
+      </div>
+    `).join('');
+  }
+  violAcList.classList.add('show');
+});
+violAcList.addEventListener('click', (ev)=>{
+  const item = ev.target.closest('.ac-item');
+  if(!item || item.dataset.vid===undefined) return;
+  const v = getAllViolations().find(x=>x._id===item.dataset.vid);
+  if(v){
+    selectedViol = v;
+    document.getElementById('viol-chip-text').textContent = `${v.name} (${v.severity})`;
+    document.getElementById('viol-chip').classList.add('show');
+    violSearchInput.value='';
+    violSearchInput.style.display='none';
+    violAcList.classList.remove('show');
+    const note = document.getElementById('viol-sev-note');
+    note.textContent = `Recommended action: ${v.action}`;
+    note.classList.add('show');
+  }
+});
+document.getElementById('viol-chip-clear').addEventListener('click', ()=>{
+  selectedViol = null;
+  document.getElementById('viol-chip').classList.remove('show');
+  violSearchInput.style.display='block';
+  violSearchInput.value='';
+  document.getElementById('viol-sev-note').classList.remove('show');
+});
+
+// ---------- Status select ----------
+document.querySelectorAll('#case-status-select button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#case-status-select button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStatus = btn.dataset.status;
+  });
+});
+document.querySelector('#case-status-select button[data-status="Served"]').classList.add('active');
+
+// default date = today
+document.getElementById('case-date').value = new Date().toISOString().slice(0,10);
+
+// ---------- File attachment helpers ----------
+const ATTACH_ICON = `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48"/></svg>`;
+function formatFileSize(bytes){
+  if(!bytes && bytes!==0) return '';
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+function fileToBase64(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result); // data:mime;base64,....
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function loadCaseAttachments(caseId){
+  try{
+    const res = await window.storage.get('case-attachments:'+caseId, false);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+async function saveCaseAttachments(caseId, list){
+  try{ await window.storage.set('case-attachments:'+caseId, JSON.stringify(list), false); }catch(e){ toast('Could not save attachments (storage error).'); }
+}
+function downloadDataUrl(name, dataUrl){
+  const a = document.createElement('a');
+  a.href = dataUrl; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+// ---------- New-case form: pending attachments before save ----------
+let pendingCaseFiles = [];
+function renderPendingAttachList(){
+  const wrap = document.getElementById('case-attach-list');
+  if(pendingCaseFiles.length===0){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = pendingCaseFiles.map((f,i)=>`
+    <div class="attach-row">
+      ${ATTACH_ICON}
+      <span class="nm">${escapeHtml(f.name)}</span>
+      <span class="sz">${formatFileSize(f.size)}</span>
+      <span class="rm" data-idx="${i}">✕</span>
+    </div>
+  `).join('');
+}
+document.getElementById('case-attach-input').addEventListener('change', (ev)=>{
+  const files = Array.from(ev.target.files || []);
+  pendingCaseFiles = pendingCaseFiles.concat(files);
+  renderPendingAttachList();
+  ev.target.value = '';
+});
+document.getElementById('case-attach-list').addEventListener('click', (ev)=>{
+  const rm = ev.target.closest('.rm');
+  if(!rm) return;
+  pendingCaseFiles.splice(Number(rm.dataset.idx), 1);
+  renderPendingAttachList();
+});
+
+// ---------- Submit case ----------
+function resetForm(){
+  selectedEmp = null; selectedViol = null; selectedStatus = 'Served';
+  document.getElementById('emp-chip').classList.remove('show');
+  document.getElementById('viol-chip').classList.remove('show');
+  document.getElementById('viol-sev-note').classList.remove('show');
+  empSearchInput.style.display='block'; empSearchInput.value='';
+  violSearchInput.style.display='block'; violSearchInput.value='';
+  document.getElementById('case-details').value='';
+  document.getElementById('case-recorder').value='';
+  document.getElementById('case-date').value = new Date().toISOString().slice(0,10);
+  document.querySelectorAll('#case-status-select button').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#case-status-select button[data-status="Served"]').classList.add('active');
+  pendingCaseFiles = [];
+  renderPendingAttachList();
+}
+document.getElementById('case-clear-btn').addEventListener('click', resetForm);
+
+document.getElementById('case-submit-btn').addEventListener('click', async ()=>{
+  if(!selectedEmp){ toast('Please select an employee.'); return; }
+  if(!selectedViol){ toast('Please select a violation.'); return; }
+  const caseId = 'CASE-' + String(Date.now()).slice(-8);
+  const filesToStore = pendingCaseFiles.slice();
+  const rec = {
+    caseId,
+    empId: selectedEmp.id,
+    empName: selectedEmp.name,
+    dept: selectedEmp.dept,
+    violation: selectedViol.name,
+    category: selectedViol.category,
+    severity: selectedViol.severity,
+    action: selectedViol.action,
+    incidentDate: document.getElementById('case-date').value,
+    details: document.getElementById('case-details').value.trim(),
+    recordedBy: document.getElementById('case-recorder').value.trim() || 'HR Admin',
+    status: selectedStatus,
+    createdAt: new Date().toISOString(),
+    attachments: filesToStore.map(f=>({name:f.name, type:f.type, size:f.size}))
+  };
+  CASES.unshift(rec);
+  await saveCases();
+  if(filesToStore.length){
+    const fullAttach = [];
+    for(const f of filesToStore){
+      const dataUrl = await fileToBase64(f);
+      fullAttach.push({name:f.name, type:f.type, size:f.size, data:dataUrl});
+    }
+    await saveCaseAttachments(caseId, fullAttach);
+  }
+  toast('Disciplinary record saved.');
+  resetForm();
+  renderCasesTable();
+});
+
+// ---------- Case records table ----------
+let caseStatusFilter = '';
+document.getElementById('case-search').addEventListener('input', renderCasesTable);
+document.querySelectorAll('#case-status-pills .pill').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('#case-status-pills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    caseStatusFilter = p.dataset.status;
+    renderCasesTable();
+  });
+});
+document.getElementById('cases-table-wrap').addEventListener('click', (ev)=>{
+  const attachBtn = ev.target.closest('.attach-badge');
+  if(attachBtn){ openCaseAttachModal(attachBtn.dataset.caseid); return; }
+  const btn = ev.target.closest('.row-action');
+  if(!btn || !btn.dataset.caseid) return;
+  openCaseStatusModal(btn.dataset.caseid);
+});
+
+function renderCasesTable(){
+  const wrap = document.getElementById('cases-table-wrap');
+  const q = document.getElementById('case-search').value.trim().toLowerCase();
+  let rows = CASES.filter(c=>{
+    if(caseStatusFilter && c.status !== caseStatusFilter) return false;
+    if(q && !c.empName.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if(rows.length===0){
+    wrap.innerHTML = `
+      <div class="table-wrap">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
+          <p>No case records ${caseStatusFilter?('with status "'+caseStatusFilter+'"'):''}${q?' matching your search':''} yet.</p>
+        </div>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Case</th><th>Employee</th><th>Violation</th><th>Severity</th><th>Incident Date</th><th>Status</th><th>Attachments</th><th></th></tr></thead>
+          <tbody>
+            ${rows.map(c=>`
+              <tr>
+                <td>${escapeHtml(c.caseId)}<div class="emp-id">by ${escapeHtml(c.recordedBy)}</div></td>
+                <td><div class="emp-name">${escapeHtml(c.empName)}</div><div class="emp-id">${escapeHtml(c.dept)}</div></td>
+                <td>${escapeHtml(c.violation)}${c.details?`<div class="emp-id" style="max-width:260px; white-space:normal;">${escapeHtml(c.details)}</div>`:''}</td>
+                <td><span class="badge ${sevClass(c.severity)}">${escapeHtml(c.severity||'—')}</span></td>
+                <td>${fmtDate(c.incidentDate)}</td>
+                <td><span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span></td>
+                <td><span class="attach-badge" data-caseid="${escapeHtml(c.caseId)}">${ATTACH_ICON.replace('class="ic"','')} ${(c.attachments||[]).length ? (c.attachments.length+' file'+(c.attachments.length===1?'':'s')) : 'Add file'}</span></td>
+                <td><button class="row-action" data-caseid="${escapeHtml(c.caseId)}">Change Status</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-foot">Showing ${rows.length} of ${CASES.length} case records</div>
+    </div>
+  `;
+}
+
+// ---------- Dashboard ----------
+function renderDashboard(){
+  const all = getAllEmployees();
+  document.getElementById('stat-total-emp').textContent = all.length;
+  const active = CASES.filter(c=>c.status==='Served' || c.status==='Ongoing').length;
+  document.getElementById('stat-active-cases').textContent = active;
+  const uniqueEmp = new Set(CASES.map(c=>c.empId)).size;
+  document.getElementById('stat-emp-viol').textContent = uniqueEmp;
+  const resolved = CASES.filter(c=>c.status==='Closed').length;
+  document.getElementById('stat-resolved').textContent = resolved;
+
+  // department breakdown
+  const counts = {};
+  all.forEach(e=>{ counts[e.dept] = (counts[e.dept]||0)+1; });
+  const max = Math.max(...Object.values(counts));
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,9);
+  document.getElementById('dept-breakdown').innerHTML = sorted.map(([d,c])=>`
+    <div class="dept-row">
+      <div class="name">${escapeHtml(d)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(c/max*100).toFixed(0)}%"></div></div>
+      <div class="count">${c}</div>
+    </div>
+  `).join('');
+
+  // recent cases
+  const recentWrap = document.getElementById('recent-cases');
+  if(CASES.length===0){
+    recentWrap.innerHTML = `<div class="empty-note">No disciplinary records filed yet. Use "File a Case" to add one.</div>`;
+  } else {
+    recentWrap.innerHTML = CASES.slice(0,6).map(c=>`
+      <div class="mini-case">
+        <div class="top">
+          <span class="who">${escapeHtml(c.empName)}</span>
+          <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
+        </div>
+        <div class="what">${escapeHtml(c.violation)} · ${fmtDate(c.incidentDate)}</div>
+      </div>
+    `).join('');
+  }
+}
+
+// ---------- Add Employee modal ----------
+const empModalOverlay = document.getElementById('emp-modal-overlay');
+const modalStatusSel = document.getElementById('modal-emp-status');
+modalStatusSel.innerHTML = STATUS_OPTIONS.map(s=>`<option value="${s}">${statusDisplay[s]}</option>`).join('');
+
+function openAddEmployeeModal(){
+  document.getElementById('modal-emp-id').value='';
+  document.getElementById('modal-emp-name').value='';
+  document.getElementById('modal-emp-dept').value='';
+  document.getElementById('modal-emp-position').value='';
+  document.getElementById('modal-emp-hired').value = new Date().toISOString().slice(0,10);
+  modalStatusSel.value='REGULAR';
+  empModalOverlay.classList.add('show');
+}
+function closeAddEmployeeModal(){ empModalOverlay.classList.remove('show'); }
+
+document.getElementById('add-emp-btn').addEventListener('click', openAddEmployeeModal);
+document.getElementById('emp-modal-close').addEventListener('click', closeAddEmployeeModal);
+document.getElementById('emp-modal-cancel').addEventListener('click', closeAddEmployeeModal);
+empModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===empModalOverlay) closeAddEmployeeModal(); });
+
+document.getElementById('emp-modal-save').addEventListener('click', async ()=>{
+  const name = document.getElementById('modal-emp-name').value.trim();
+  const dept = document.getElementById('modal-emp-dept').value.trim();
+  if(!name){ toast('Please enter the employee name.'); return; }
+  if(!dept){ toast('Please enter a department.'); return; }
+  let id = document.getElementById('modal-emp-id').value.trim();
+  const allIds = new Set(getAllEmployees().map(e=>String(e.id)));
+  if(!id){
+    do { id = String(300000 + Math.floor(Math.random()*699999)); } while(allIds.has(id));
+  } else if(allIds.has(id)){
+    toast('That Employee ID is already in use.'); return;
+  }
+  const newEmp = {
+    id, name,
+    dept,
+    position: document.getElementById('modal-emp-position').value.trim(),
+    hired: document.getElementById('modal-emp-hired').value,
+    status: modalStatusSel.value
+  };
+  ADDED_EMPLOYEES.push(newEmp);
+  await saveAddedEmployees();
+  closeAddEmployeeModal();
+  refreshFilterOptions();
+  renderEmpTable();
+  renderDashboard();
+  toast(`${name} added to the masterlist.`);
+});
+
+// ---------- Edit Employee modal ----------
+const statusModalOverlay = document.getElementById('status-modal-overlay');
+const modalStatusSelect2 = document.getElementById('modal-status-select');
+const modalEditDept = document.getElementById('modal-edit-dept');
+const modalEditPosition = document.getElementById('modal-edit-position');
+modalStatusSelect2.innerHTML = STATUS_OPTIONS.map(s=>`<option value="${s}">${statusDisplay[s]}</option>`).join('');
+let statusModalTargetId = null;
+
+function openStatusModal(empId){
+  const emp = getAllEmployees().find(e=>String(e.id)===String(empId));
+  if(!emp) return;
+  statusModalTargetId = empId;
+  document.getElementById('status-modal-emp-name').textContent = `${emp.name} — ID ${emp.id}`;
+  modalEditDept.value = emp.dept || '';
+  modalEditPosition.value = emp.position || '';
+  modalStatusSelect2.value = (emp.status||'REGULAR').toUpperCase();
+  statusModalOverlay.classList.add('show');
+}
+function closeStatusModal(){ statusModalOverlay.classList.remove('show'); statusModalTargetId=null; }
+document.getElementById('status-modal-close').addEventListener('click', closeStatusModal);
+document.getElementById('status-modal-cancel').addEventListener('click', closeStatusModal);
+statusModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===statusModalOverlay) closeStatusModal(); });
+
+document.getElementById('status-modal-save').addEventListener('click', async ()=>{
+  if(!statusModalTargetId) return;
+  const dept = modalEditDept.value.trim();
+  const position = modalEditPosition.value.trim();
+  if(!dept){ toast('Please enter a department.'); return; }
+  EMP_OVERRIDES[statusModalTargetId] = {
+    status: modalStatusSelect2.value,
+    dept: dept,
+    position: position
+  };
+  await saveEmpOverrides();
+  closeStatusModal();
+  refreshFilterOptions();
+  renderEmpTable();
+  renderDashboard();
+  toast('Employee details updated.');
+});
+
+// ---------- Change Case Status modal ----------
+const caseStatusModalOverlay = document.getElementById('case-status-modal-overlay');
+const modalCaseStatusSelect = document.getElementById('modal-case-status-select');
+let caseStatusModalTargetId = null;
+
+function openCaseStatusModal(caseId){
+  const c = CASES.find(x=>x.caseId===caseId);
+  if(!c) return;
+  caseStatusModalTargetId = caseId;
+  document.getElementById('case-status-modal-info').textContent = `${c.empName} — ${c.violation}`;
+  modalCaseStatusSelect.value = c.status;
+  caseStatusModalOverlay.classList.add('show');
+}
+function closeCaseStatusModal(){ caseStatusModalOverlay.classList.remove('show'); caseStatusModalTargetId=null; }
+document.getElementById('case-status-modal-close').addEventListener('click', closeCaseStatusModal);
+document.getElementById('case-status-modal-cancel').addEventListener('click', closeCaseStatusModal);
+caseStatusModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===caseStatusModalOverlay) closeCaseStatusModal(); });
+
+// ---------- Case attachments modal ----------
+const caseAttachModalOverlay = document.getElementById('case-attach-modal-overlay');
+let caseAttachModalTargetId = null;
+async function renderCaseAttachModalList(){
+  const listEl = document.getElementById('case-attach-modal-list');
+  listEl.innerHTML = `<div class="attach-empty">Loading…</div>`;
+  const files = await loadCaseAttachments(caseAttachModalTargetId);
+  if(files.length===0){
+    listEl.innerHTML = `<div class="attach-empty">No documents attached to this case yet.</div>`;
+  } else {
+    listEl.innerHTML = files.map((f,i)=>`
+      <div class="attach-row">
+        ${ATTACH_ICON}
+        <span class="nm">${escapeHtml(f.name)}</span>
+        <span class="sz">${formatFileSize(f.size)}</span>
+        <a class="dl" href="${f.data}" download="${escapeHtml(f.name)}">Download</a>
+        <span class="rm" data-idx="${i}" title="Remove">✕</span>
+      </div>
+    `).join('');
+  }
+}
+async function openCaseAttachModal(caseId){
+  caseAttachModalTargetId = caseId;
+  document.getElementById('case-attach-modal-title').textContent = `Attachments — ${caseId}`;
+  caseAttachModalOverlay.classList.add('show');
+  await renderCaseAttachModalList();
+}
+function closeCaseAttachModal(){ caseAttachModalOverlay.classList.remove('show'); caseAttachModalTargetId = null; }
+document.getElementById('case-attach-modal-close').addEventListener('click', closeCaseAttachModal);
+caseAttachModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===caseAttachModalOverlay) closeCaseAttachModal(); });
+
+document.getElementById('case-attach-modal-input').addEventListener('change', async (ev)=>{
+  const newFiles = Array.from(ev.target.files || []);
+  ev.target.value = '';
+  if(newFiles.length===0 || !caseAttachModalTargetId) return;
+  const targetId = caseAttachModalTargetId;
+  const existing = await loadCaseAttachments(targetId);
+  for(const f of newFiles){
+    const dataUrl = await fileToBase64(f);
+    existing.push({name:f.name, type:f.type, size:f.size, data:dataUrl});
+  }
+  await saveCaseAttachments(targetId, existing);
+  const rec = CASES.find(c=>c.caseId===targetId);
+  if(rec) rec.attachments = existing.map(f=>({name:f.name, type:f.type, size:f.size}));
+  await saveCases();
+  await renderCaseAttachModalList();
+  renderCasesTable();
+  toast('Attachment added.');
+});
+
+document.getElementById('case-attach-modal-list').addEventListener('click', async (ev)=>{
+  const rm = ev.target.closest('.rm');
+  if(!rm || !caseAttachModalTargetId) return;
+  const targetId = caseAttachModalTargetId;
+  const existing = await loadCaseAttachments(targetId);
+  existing.splice(Number(rm.dataset.idx), 1);
+  await saveCaseAttachments(targetId, existing);
+  const rec = CASES.find(c=>c.caseId===targetId);
+  if(rec) rec.attachments = existing.map(f=>({name:f.name, type:f.type, size:f.size}));
+  await saveCases();
+  await renderCaseAttachModalList();
+  renderCasesTable();
+  toast('Attachment removed.');
+});
+
+document.getElementById('case-status-modal-save').addEventListener('click', async ()=>{
+  if(!caseStatusModalTargetId) return;
+  const c = CASES.find(x=>x.caseId===caseStatusModalTargetId);
+  if(c){
+    c.status = modalCaseStatusSelect.value;
+    await saveCases();
+    closeCaseStatusModal();
+    renderCasesTable();
+    renderDashboard();
+    toast('Case status updated.');
+  }
+});
+
+// ---------- Add Violation modal ----------
+const violModalOverlay = document.getElementById('viol-modal-overlay');
+function openAddViolationModal(){
+  document.getElementById('modal-viol-category').value='';
+  document.getElementById('modal-viol-name').value='';
+  document.getElementById('modal-viol-desc').value='';
+  document.getElementById('modal-viol-action').value='';
+  document.getElementById('modal-viol-severity').value='Minor';
+  violModalOverlay.classList.add('show');
+}
+function closeAddViolationModal(){ violModalOverlay.classList.remove('show'); }
+document.getElementById('add-viol-btn').addEventListener('click', openAddViolationModal);
+document.getElementById('viol-modal-close').addEventListener('click', closeAddViolationModal);
+document.getElementById('viol-modal-cancel').addEventListener('click', closeAddViolationModal);
+violModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===violModalOverlay) closeAddViolationModal(); });
+
+document.getElementById('viol-modal-save').addEventListener('click', async ()=>{
+  const name = document.getElementById('modal-viol-name').value.trim();
+  const category = document.getElementById('modal-viol-category').value.trim();
+  if(!name){ toast('Please enter the violation name.'); return; }
+  if(!category){ toast('Please enter a category.'); return; }
+  const newViol = {
+    _id: 'added-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    category,
+    name,
+    desc: document.getElementById('modal-viol-desc').value.trim(),
+    severity: document.getElementById('modal-viol-severity').value,
+    action: document.getElementById('modal-viol-action').value.trim()
+  };
+  ADDED_VIOLATIONS.push(newViol);
+  await saveAddedViolations();
+  closeAddViolationModal();
+  renderViolTable();
+  toast(`"${name}" added to the violation reference.`);
+});
+
+// ---------- Upload violations from Excel ----------
+const violFileInput = document.getElementById('viol-file-input');
+document.getElementById('upload-viol-btn').addEventListener('click', ()=> violFileInput.click());
+
+function findCol(rowObj, keywords){
+  const keys = Object.keys(rowObj);
+  for(const k of keys){
+    const norm = k.toLowerCase().replace(/[^a-z]/g,'');
+    if(keywords.some(kw=>norm.includes(kw))) return rowObj[k];
+  }
+  return '';
+}
+function normalizeSeverity(raw){
+  const s = (raw||'').toString().trim().toLowerCase();
+  if(s.includes('crit')) return 'Critical';
+  if(s.includes('major')) return 'Major';
+  if(s.includes('minor')) return 'Minor';
+  return raw ? raw.toString().trim() : 'Minor';
+}
+
+violFileInput.addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type:'array'});
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      let imported = 0;
+      rows.forEach(r=>{
+        const name = findCol(r, ['violation','name','offense']);
+        if(!name) return;
+        const newViol = {
+          _id: 'added-' + Date.now() + '-' + Math.floor(Math.random()*100000),
+          category: findCol(r, ['category','type']) || 'General',
+          name: String(name).trim(),
+          desc: findCol(r, ['description','desc','details']),
+          severity: normalizeSeverity(findCol(r, ['severity','level'])),
+          action: findCol(r, ['action','recommend','penalty','sanction'])
+        };
+        ADDED_VIOLATIONS.push(newViol);
+        imported++;
+      });
+      if(imported===0){
+        toast('No violations found. Check that your file has a "Violation" column.');
+      } else {
+        await saveAddedViolations();
+        renderViolTable();
+        toast(`Imported ${imported} violation${imported===1?'':'s'} from Excel.`);
+      }
+    } catch(err){
+      console.error(err);
+      toast('Could not read that file. Please upload a valid Excel file.');
+    }
+    violFileInput.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+// ---------- Employee Violation History modal ----------
+const empViolModalOverlay = document.getElementById('emp-viol-modal-overlay');
+function openEmpViolationsModal(empId){
+  const emp = getAllEmployees().find(e=>String(e.id)===String(empId));
+  if(!emp) return;
+  document.getElementById('emp-viol-modal-title').textContent = `${emp.name} — Violation History`;
+  const records = CASES.filter(c=>String(c.empId)===String(empId)).sort((a,b)=> new Date(b.incidentDate) - new Date(a.incidentDate));
+  const listEl = document.getElementById('emp-viol-modal-list');
+  if(records.length===0){
+    listEl.innerHTML = `<div class="empty-note">No violations on file for this employee.</div>`;
+  } else {
+    listEl.innerHTML = records.map(c=>`
+      <div class="mini-case">
+        <div class="top">
+          <span class="who">${escapeHtml(c.violation)}</span>
+          <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
+        </div>
+        <div class="what">${fmtDate(c.incidentDate)} · <span class="badge ${sevClass(c.severity)}" style="margin-left:2px;">${escapeHtml(c.severity||'—')}</span></div>
+        ${c.details ? `<div class="what" style="margin-top:5px;">${escapeHtml(c.details)}</div>` : ''}
+        <div class="what" style="margin-top:6px;"><span class="attach-badge" data-caseid="${escapeHtml(c.caseId)}">${ATTACH_ICON.replace('class="ic"','')} ${(c.attachments||[]).length ? (c.attachments.length+' file'+(c.attachments.length===1?'':'s')) : 'Add file'}</span></div>
+      </div>
+    `).join('');
+  }
+  empViolModalOverlay.classList.add('show');
+}
+function closeEmpViolationsModal(){ empViolModalOverlay.classList.remove('show'); }
+document.getElementById('emp-viol-modal-close').addEventListener('click', closeEmpViolationsModal);
+empViolModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===empViolModalOverlay) closeEmpViolationsModal(); });
+document.getElementById('emp-viol-modal-list').addEventListener('click', (ev)=>{
+  const attachBtn = ev.target.closest('.attach-badge');
+  if(!attachBtn) return;
+  openCaseAttachModal(attachBtn.dataset.caseid);
+});
+
+// ---------- Violation Analytics ----------
+let analyticsPeriod = 'daily';
+let analyticsMonthFilter = '';
+document.querySelectorAll('#an-period-pills .pill').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('#an-period-pills .pill').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    analyticsPeriod = p.dataset.period;
+    renderAnalyticsTimeTable();
+  });
+});
+document.getElementById('an-month-search').addEventListener('input', (ev)=>{
+  analyticsMonthFilter = ev.target.value; // 'YYYY-MM' or ''
+  renderAnalyticsTimeTable();
+});
+document.getElementById('an-month-clear').addEventListener('click', ()=>{
+  analyticsMonthFilter = '';
+  document.getElementById('an-month-search').value = '';
+  renderAnalyticsTimeTable();
+});
+
+function groupCasesByPeriod(period){
+  const map = {};
+  CASES.forEach(c=>{
+    if(!c.incidentDate) return;
+    const d = new Date(c.incidentDate);
+    if(isNaN(d)) return;
+    const key = period === 'daily' ? c.incidentDate : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!map[key]) map[key] = { key, served:0, ongoing:0, closed:0, total:0 };
+    map[key].total++;
+    if(c.status==='Served') map[key].served++;
+    else if(c.status==='Ongoing') map[key].ongoing++;
+    else if(c.status==='Closed') map[key].closed++;
+  });
+  return Object.values(map).sort((a,b)=> b.key.localeCompare(a.key));
+}
+function periodLabel(key, period){
+  if(period==='daily') return fmtDate(key);
+  const [y,m] = key.split('-');
+  return new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-US',{month:'long', year:'numeric'});
+}
+function renderAnalyticsTimeTable(){
+  let rows = groupCasesByPeriod(analyticsPeriod);
+  if(analyticsMonthFilter){
+    rows = rows.filter(r => r.key.startsWith(analyticsMonthFilter));
+  }
+  const body = document.getElementById('an-time-body');
+  if(rows.length===0){
+    const msg = analyticsMonthFilter
+      ? `No violations found for ${new Date(analyticsMonthFilter+'-01').toLocaleDateString('en-US',{month:'long', year:'numeric'})}.`
+      : 'No violations recorded yet.';
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state"><p>${escapeHtml(msg)}</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map(r=>{
+    const pct = r.total ? ((r.closed/r.total)*100).toFixed(1) : '0.0';
+    return `
+      <tr>
+        <td>${escapeHtml(periodLabel(r.key, analyticsPeriod))}</td>
+        <td>${r.total}</td>
+        <td>${r.served}</td>
+        <td>${r.ongoing}</td>
+        <td>${r.closed}</td>
+        <td>${pct}%</td>
+      </tr>`;
+  }).join('');
+}
+
+function groupCasesByEmployee(){
+  const map = {};
+  CASES.forEach(c=>{
+    const key = c.empId;
+    if(!map[key]) map[key] = { empName:c.empName, dept:c.dept, count:0, latestDate:null, latestViolation:'', latestStatus:'' };
+    map[key].count++;
+    if(!map[key].latestDate || new Date(c.incidentDate) > new Date(map[key].latestDate)){
+      map[key].latestDate = c.incidentDate;
+      map[key].latestViolation = c.violation;
+      map[key].latestStatus = c.status;
+    }
+  });
+  return Object.values(map).sort((a,b)=> b.count - a.count);
+}
+function renderAnalyticsEmpTable(){
+  const rows = groupCasesByEmployee();
+  const body = document.getElementById('an-emp-body');
+  if(rows.length===0){
+    body.innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>No violations recorded yet.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map(r=>`
+    <tr>
+      <td><span class="emp-name">${escapeHtml(r.empName)}</span></td>
+      <td>${escapeHtml(r.dept)}</td>
+      <td><span class="badge ${violCountBadgeClass(r.count)}">${r.count} case${r.count===1?'':'s'}</span></td>
+      <td>${escapeHtml(r.latestViolation)}<div class="emp-id">${fmtDate(r.latestDate)}</div></td>
+      <td><span class="badge ${statusClass(r.latestStatus)}">${escapeHtml(r.latestStatus)}</span></td>
+    </tr>
+  `).join('');
+}
+
+function groupCasesByCategory(){
+  const map = {};
+  CASES.forEach(c=>{
+    const key = c.category || 'Uncategorized';
+    if(!map[key]) map[key] = { count:0, violCounts:{}, sevCounts:{} };
+    map[key].count++;
+    map[key].violCounts[c.violation] = (map[key].violCounts[c.violation]||0)+1;
+    map[key].sevCounts[c.severity||'—'] = (map[key].sevCounts[c.severity||'—']||0)+1;
+  });
+  return Object.entries(map).map(([cat,d])=>{
+    const topViol = Object.entries(d.violCounts).sort((a,b)=>b[1]-a[1])[0][0];
+    const topSev = Object.entries(d.sevCounts).sort((a,b)=>b[1]-a[1])[0][0];
+    return { category:cat, count:d.count, topViol, topSev };
+  }).sort((a,b)=> b.count - a.count);
+}
+function renderAnalyticsCatTable(){
+  const rows = groupCasesByCategory();
+  const body = document.getElementById('an-cat-body');
+  if(rows.length===0){
+    body.innerHTML = `<tr><td colspan="4"><div class="empty-state"><p>No violations recorded yet.</p></div></td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map(r=>`
+    <tr>
+      <td><strong>${escapeHtml(r.category)}</strong></td>
+      <td>${r.count}</td>
+      <td>${escapeHtml(r.topViol)}</td>
+      <td><span class="badge ${sevClass(r.topSev)}">${escapeHtml(r.topSev)}</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderAnalytics(){
+  document.getElementById('an-total').textContent = CASES.length;
+  document.getElementById('an-total-foot').textContent = `${CASES.length} case${CASES.length===1?'':'s'} filed`;
+  const active = CASES.filter(c=>c.status==='Served' || c.status==='Ongoing').length;
+  document.getElementById('an-active').textContent = active;
+  const resolved = CASES.filter(c=>c.status==='Closed').length;
+  document.getElementById('an-resolved').textContent = resolved;
+  const rate = CASES.length ? ((resolved/CASES.length)*100).toFixed(1) : '0.0';
+  document.getElementById('an-resolved-foot').textContent = `${rate}% resolution rate`;
+  renderAnalyticsTimeTable();
+  renderAnalyticsEmpTable();
+  renderAnalyticsCatTable();
+}
+
+// ---------- Export all data to Excel (+ attachments) ----------
+function safeFileName(s){
+  return String(s||'').replace(/[\\/:*?"<>|]/g,'-').trim().slice(0,80) || 'file';
+}
+function dataUrlToUint8Array(dataUrl){
+  const base64 = dataUrl.split(',')[1] || '';
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+
+async function exportAllDataToExcel(){
+  const exportBtn = document.getElementById('export-all-btn');
+  const originalLabel = exportBtn.textContent;
+  exportBtn.textContent = 'Preparing download…';
+  exportBtn.disabled = true;
+  try{
+    const wb = XLSX.utils.book_new();
+    const today = new Date();
+    const stamp = today.toISOString().slice(0,10);
+
+    const allEmp = getAllEmployees();
+    const allCases = CASES;
+    const totalAttachments = allCases.reduce((sum,c)=> sum + ((c.attachments||[]).length), 0);
+    const casesWithAttach = allCases.filter(c=>(c.attachments||[]).length>0).length;
+    const active = allCases.filter(c=>c.status==='Served' || c.status==='Ongoing').length;
+    const closed = allCases.filter(c=>c.status==='Closed').length;
+    const rate = allCases.length ? ((closed/allCases.length)*100).toFixed(1) : '0.0';
+
+    // --- Sheet 1: Summary ---
+    const summaryRows = [
+      ['Personnel & Conduct Registry — Data Export'],
+      ['Generated on', fmtDate(stamp)],
+      [],
+      ['Metric','Value'],
+      ['Total Employees', allEmp.length],
+      ['Total Violation Cases Filed', allCases.length],
+      ['Active Cases (Served/Ongoing)', active],
+      ['Closed Cases', closed],
+      ['Resolution Rate', rate + '%'],
+      ['Violation Reference Items', getAllViolations().length],
+      ['Cases with Attached Documents', casesWithAttach],
+      ['Total Attached Files', totalAttachments],
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+    wsSummary['!cols'] = [{wch:32},{wch:22}];
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+    // --- Sheet 2: Employees ---
+    const empHeader = ['Employee ID','Name','Department','Position','Date Hired','Status','Violation Cases'];
+    const empRows = allEmp.map(e=>{
+      const n = allCases.filter(c=>String(c.empId)===String(e.id)).length;
+      return [e.id, e.name, e.dept, e.position||'', fmtDate(e.hired), statusDisplay[(e.status||'').toUpperCase()] || e.status || '', n];
+    }).sort((a,b)=> (a[1]||'').localeCompare(b[1]||''));
+    const wsEmp = XLSX.utils.aoa_to_sheet([empHeader, ...empRows]);
+    wsEmp['!cols'] = [{wch:14},{wch:30},{wch:16},{wch:28},{wch:12},{wch:14},{wch:16}];
+    wsEmp['!autofilter'] = { ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:empRows.length,c:empHeader.length-1}}) };
+    XLSX.utils.book_append_sheet(wb, wsEmp, 'Employees');
+
+    // --- Sheet 3: Disciplinary Cases ---
+    const caseHeader = ['Employee ID','Employee Name','Department','Incident Date','Category','Violation','Severity','Status','Details','Attachment Count','Attachment Files'];
+    const sortedCases = allCases.slice().sort((a,b)=> new Date(b.incidentDate) - new Date(a.incidentDate));
+    const caseRows = sortedCases.map(c=>{
+      const files = c.attachments || [];
+      return [c.empId, c.empName, c.dept, fmtDate(c.incidentDate), c.category||'', c.violation, c.severity||'', c.status, c.details||'', files.length, files.map(f=>f.name).join(', ')];
+    });
+    const wsCases = XLSX.utils.aoa_to_sheet([caseHeader, ...caseRows]);
+    wsCases['!cols'] = [{wch:14},{wch:28},{wch:16},{wch:13},{wch:22},{wch:34},{wch:10},{wch:10},{wch:40},{wch:10},{wch:40}];
+    if(caseRows.length){
+      wsCases['!autofilter'] = { ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:caseRows.length,c:caseHeader.length-1}}) };
+    }
+    XLSX.utils.book_append_sheet(wb, wsCases, 'Disciplinary Cases');
+
+    // --- Sheet 4: Violation Reference (English + Tagalog) ---
+    const violHeader = ['Class/Category','Violation (EN)','Violation (TL)','Description (EN)','Description (TL)','Severity','Recommended Action (EN)','Recommended Action (TL)'];
+    const violRows = getAllViolations().map(v=>[
+      v.category, v.name, v.name_tl||'', v.desc, v.desc_tl||'', v.severity, v.action, v.action_tl||''
+    ]);
+    const wsViol = XLSX.utils.aoa_to_sheet([violHeader, ...violRows]);
+    wsViol['!cols'] = [{wch:30},{wch:30},{wch:30},{wch:40},{wch:40},{wch:10},{wch:32},{wch:32}];
+    wsViol['!autofilter'] = { ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:violRows.length,c:violHeader.length-1}}) };
+    XLSX.utils.book_append_sheet(wb, wsViol, 'Violation Reference');
+
+    // --- Sheet 5: Violations by Employee (summary) ---
+    const byEmpMap = {};
+    allCases.forEach(c=>{
+      const key = c.empId;
+      if(!byEmpMap[key]) byEmpMap[key] = { empId:c.empId, empName:c.empName, dept:c.dept, count:0, latestDate:null, latestViolation:'', latestStatus:'' };
+      byEmpMap[key].count++;
+      if(!byEmpMap[key].latestDate || new Date(c.incidentDate) > new Date(byEmpMap[key].latestDate)){
+        byEmpMap[key].latestDate = c.incidentDate;
+        byEmpMap[key].latestViolation = c.violation;
+        byEmpMap[key].latestStatus = c.status;
+      }
+    });
+    const byEmpRows = Object.values(byEmpMap)
+      .sort((a,b)=> b.count - a.count)
+      .map(r=>[r.empId, r.empName, r.dept, r.count, fmtDate(r.latestDate), r.latestViolation, r.latestStatus]);
+    const byEmpHeader = ['Employee ID','Employee Name','Department','Total Cases','Latest Incident Date','Latest Violation','Latest Status'];
+    const wsByEmp = XLSX.utils.aoa_to_sheet([byEmpHeader, ...byEmpRows]);
+    wsByEmp['!cols'] = [{wch:14},{wch:28},{wch:16},{wch:12},{wch:18},{wch:34},{wch:12}];
+    if(byEmpRows.length){
+      wsByEmp['!autofilter'] = { ref: XLSX.utils.encode_range({s:{r:0,c:0},e:{r:byEmpRows.length,c:byEmpHeader.length-1}}) };
+    }
+    XLSX.utils.book_append_sheet(wb, wsByEmp, 'Cases by Employee');
+
+    const xlsxArrayBuffer = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+
+    // If no attachments anywhere, just download the plain workbook.
+    if(totalAttachments === 0){
+      XLSX.writeFile(wb, `personnel-conduct-registry_${stamp}.xlsx`);
+      return;
+    }
+
+    // Otherwise bundle workbook + attachments into a ZIP, organized by employee/case.
+    const zip = new JSZip();
+    zip.file(`personnel-conduct-registry_${stamp}.xlsx`, xlsxArrayBuffer);
+    const attachRoot = zip.folder('attachments');
+    for(const c of sortedCases){
+      const files = c.attachments || [];
+      if(files.length===0) continue;
+      const full = await loadCaseAttachments(c.caseId);
+      if(full.length===0) continue;
+      const folder = attachRoot.folder(`${safeFileName(c.empName)}_${c.caseId}`);
+      full.forEach(f=>{
+        try{
+          folder.file(safeFileName(f.name), dataUrlToUint8Array(f.data));
+        }catch(e){ /* skip file if corrupted */ }
+      });
+    }
+    const zipBlob = await zip.generateAsync({type:'blob'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = `personnel-conduct-registry_${stamp}.zip`;
+    document.body.appendChild(a); a.click(); a.remove();
+  } finally {
+    exportBtn.textContent = originalLabel;
+    exportBtn.disabled = false;
+  }
+}
+document.getElementById('export-all-btn').addEventListener('click', exportAllDataToExcel);
+
+// ---------- init ----------
+(async function init(){
+  await loadCases();
+  await loadEmployeeChanges();
+  await loadAddedViolations();
+  refreshFilterOptions();
+  renderEmpTable();
+  renderViolTable();
+  renderDashboard();
+  renderCasesTable();
+})();
+</script>
+</body>
+</html>
