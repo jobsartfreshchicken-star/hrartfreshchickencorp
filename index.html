@@ -49,11 +49,18 @@
     </div>
   </aside>
 
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <main class="main">
     <div class="topbar">
-      <div>
-        <h2 id="topbar-title">Dashboard</h2>
-        <div class="sub" id="topbar-sub">Overview of personnel and active disciplinary matters</div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button class="hamburger-btn" id="sidebar-toggle-btn" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h2 id="topbar-title">Dashboard</h2>
+          <div class="sub" id="topbar-sub">Overview of personnel and active disciplinary matters</div>
+        </div>
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
         <button class="btn ghost" id="export-all-btn" title="Download all system data as an organized Excel workbook (bundled with attachments as a ZIP when documents are attached)">⇩ Download All Data</button>
@@ -582,6 +589,15 @@ const titles = {
   analytics:['Violation Analytics','Conduct trends across the organization, updated in real time'],
   violations:['Violation Reference','Standard violation categories and recommended actions']
 };
+const sidebarEl = document.querySelector('.sidebar');
+const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+function openSidebar(){ sidebarEl.classList.add('open'); sidebarBackdrop.classList.add('show'); }
+function closeSidebar(){ sidebarEl.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
+document.getElementById('sidebar-toggle-btn').addEventListener('click', ()=>{
+  sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+sidebarBackdrop.addEventListener('click', closeSidebar);
+
 document.querySelectorAll('.nav-item').forEach(item=>{
   item.addEventListener('click', ()=>{
     document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
@@ -591,6 +607,7 @@ document.querySelectorAll('.nav-item').forEach(item=>{
     document.getElementById('view-'+view).classList.add('active');
     document.getElementById('topbar-title').textContent = titles[view][0];
     document.getElementById('topbar-sub').textContent = titles[view][1];
+    closeSidebar();
     if(view==='dashboard') renderDashboard();
     if(view==='cases') renderCasesTable();
     if(view==='analytics') renderAnalytics();

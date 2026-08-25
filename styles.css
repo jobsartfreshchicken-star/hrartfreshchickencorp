@@ -83,6 +83,21 @@
     font-size:11px; color:#7d7a6a; line-height:1.5;
   }
 
+  .hamburger-btn{
+    display:none;
+    align-items:center; justify-content:center;
+    width:36px; height:36px; flex-shrink:0;
+    background:transparent; border:1px solid var(--line); border-radius:6px;
+    color:var(--ink); cursor:pointer; padding:0;
+  }
+  .hamburger-btn svg{ width:19px; height:19px; }
+  .hamburger-btn:hover{ background:var(--paper-dim); }
+  .sidebar-backdrop{
+    display:none; position:fixed; inset:0;
+    background:rgba(13,13,13,0.45); z-index:999;
+  }
+  .sidebar-backdrop.show{ display:block; }
+
   /* ===== Main ===== */
   .main{ flex:1; min-width:0; }
   .topbar{
@@ -335,6 +350,11 @@
     .stat-grid{ grid-template-columns:repeat(2,1fr); }
     .panel-grid{ grid-template-columns:1fr; }
     .form-grid{ grid-template-columns:1fr; }
-    .sidebar{ position:relative; height:auto; width:100%; }
-    .app{ flex-direction:column; }
+    .hamburger-btn{ display:flex; }
+    .sidebar{
+      position:fixed; top:0; left:0; height:100vh; width:250px; z-index:1000;
+      transform:translateX(-100%);
+      transition:transform .25s ease;
+    }
+    .sidebar.open{ transform:translateX(0); }
   }
