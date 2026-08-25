@@ -593,8 +593,13 @@ const sidebarEl = document.querySelector('.sidebar');
 const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 function openSidebar(){ sidebarEl.classList.add('open'); sidebarBackdrop.classList.add('show'); }
 function closeSidebar(){ sidebarEl.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
+const desktopMq = window.matchMedia('(min-width: 981px)');
 document.getElementById('sidebar-toggle-btn').addEventListener('click', ()=>{
-  sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar();
+  if (desktopMq.matches) {
+    sidebarEl.classList.toggle('collapsed');
+  } else {
+    sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar();
+  }
 });
 sidebarBackdrop.addEventListener('click', closeSidebar);
 
