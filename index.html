@@ -501,13 +501,94 @@ const STATUS_OPTIONS = ['REGULAR','PROBATIONARY','ON LEAVE','AWOL','RESIGNED','T
 // ---------- storage ----------
 async function loadCases(){
   try{
-    const res = await window.storage.get('disciplinary-cases', false);
-    if(res && res.value){ CASES = JSON.parse(res.value); }
-  }catch(e){ CASES = []; }
+    const { data, error } = await supabaseClient
+      .from('disciplinary_cases')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if(error){
+      console.error('Supabase loadCases error:', error);
+      CASES = [];
+      return;
+    }
+
+    CASES = (data || []).map(row => ({
+      caseId: row.case_id,
+      dbId: row.id,
+      empId: row.employee_id,
+      empName: row.employee_name,
+      dept: row.department,
+      violation: row.violation,
+      category: row.category,
+      severity: row.severity,
+      action: row.action,
+      incidentDate: row.incident_date,
+      details: row.details || '',
+      recordedBy: row.recorded_by || 'HR Admin',
+      status: row.status,
+      createdAt: row.created_at,
+      attachments: []
+    }));
+
+  }catch(e){
+    console.error('loadCases failed:', e);
+    CASES = [];
+  }
 }
+
 async function saveCases(){
-  try{ await window.storage.set('disciplinary-cases', JSON.stringify(CASES), false); }
-  catch(e){ console.error('save failed', e); }
+  try{
+
+    for(const c of CASES){
+
+      const row = {
+        employee_id: String(c.empId),
+        employee_name: c.empName,
+        department: c.dept,
+        incident_date: c.incidentDate || null,
+        category: c.category || '',
+        violation: c.violation || '',
+        severity: c.severity || '',
+        action: c.action || '',
+        status: c.status || 'Served',
+        details: c.details || '',
+        recorded_by: c.recordedBy || 'HR Admin',
+        created_at: c.createdAt || new Date().toISOString(),
+        case_id: c.caseId
+      };
+
+      let result;
+
+      if(c.dbId){
+
+        result = await supabaseClient
+          .from('disciplinary_cases')
+          .update(row)
+          .eq('id', c.dbId);
+
+      }else{
+
+        result = await supabaseClient
+          .from('disciplinary_cases')
+          .insert(row)
+          .select()
+          .single();
+
+        if(result.data){
+          c.dbId = result.data.id;
+        }
+      }
+
+      if(result.error){
+        console.error('Supabase saveCases error:', result.error);
+        throw result.error;
+      }
+    }
+
+  }catch(e){
+    console.error('saveCases failed:', e);
+    toast('Could not save case to database.');
+  }
 }
 async function loadEmployeeChanges(){
   try{
