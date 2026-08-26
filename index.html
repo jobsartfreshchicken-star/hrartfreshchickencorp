@@ -1709,5 +1709,139 @@ document.getElementById('export-all-btn').addEventListener('click', exportAllDat
   renderCasesTable();
 })();
 </script>
+  
+  <!-- LOGIN SCREEN -->
+<style>
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: #f5f6f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    font-family: Inter, sans-serif;
+  }
+
+  #login-box {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.12);
+  }
+
+  #login-box h2 {
+    margin: 0 0 8px;
+  }
+
+  #login-box p {
+    margin: 0 0 24px;
+    color: #666;
+  }
+
+  #login-box label {
+    display: block;
+    margin: 14px 0 6px;
+    font-weight: 600;
+  }
+
+  #login-box input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  #login-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  #login-message {
+    margin-top: 12px;
+    font-size: 14px;
+  }
+</style>
+
+<div id="login-screen">
+  <div id="login-box">
+    <h2>HR Personnel System</h2>
+    <p>Please sign in to continue.</p>
+
+    <label for="login-email">Email</label>
+    <input
+      type="email"
+      id="login-email"
+      placeholder="Enter your email"
+    >
+
+    <label for="login-password">Password</label>
+    <input
+      type="password"
+      id="login-password"
+      placeholder="Enter your password"
+    >
+
+    <button id="login-btn">Sign In</button>
+
+    <div id="login-message"></div>
+  </div>
+</div>
+
+<script>
+  const loginScreen = document.getElementById('login-screen');
+  const loginBtn = document.getElementById('login-btn');
+  const loginMessage = document.getElementById('login-message');
+
+  async function checkLogin() {
+    const { data } = await supabaseClient.auth.getSession();
+
+    if (data.session) {
+      loginScreen.style.display = 'none';
+    } else {
+      loginScreen.style.display = 'flex';
+    }
+  }
+
+  loginBtn.addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    loginMessage.textContent = 'Signing in...';
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) {
+      loginMessage.textContent = error.message;
+      return;
+    }
+
+    loginMessage.textContent = 'Login successful!';
+    loginScreen.style.display = 'none';
+  });
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      loginScreen.style.display = 'none';
+    } else {
+      loginScreen.style.display = 'flex';
+    }
+  });
+
+  checkLogin();
+</script>
+  
 </body>
 </html>
