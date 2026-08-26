@@ -86,12 +86,13 @@
   .hamburger-btn{
     display:flex;
     align-items:center; justify-content:center;
-    width:36px; height:36px; flex-shrink:0;
+    width:32px; height:32px; flex-shrink:0;
     background:transparent; border:1px solid var(--line); border-radius:6px;
     color:var(--ink); cursor:pointer; padding:0;
+    opacity:0.92;
   }
-  .hamburger-btn svg{ width:19px; height:19px; }
-  .hamburger-btn:hover{ background:var(--paper-dim); }
+  .hamburger-btn svg{ width:17px; height:17px; }
+  .hamburger-btn:hover{ background:var(--paper-dim); opacity:1; }
   .sidebar-backdrop{
     display:none; position:fixed; inset:0;
     background:rgba(13,13,13,0.45); z-index:999;
