@@ -590,6 +590,26 @@ async function saveCases(){
     toast('Could not save case to database.');
   }
 }
+
+async function ensureEmployeeSynced(emp){
+  try{
+    const { error } = await supabaseClient
+      .from('employees')
+      .upsert({
+        id: String(emp.id),
+        name: emp.name,
+        department: emp.dept,
+        position: emp.position,
+        status: emp.status,
+        date_hired: emp.hired || null
+      }, { onConflict: 'id' });
+
+    if(error){ console.error('Supabase ensureEmployeeSynced error:', error); }
+  }catch(e){
+    console.error('ensureEmployeeSynced failed:', e);
+  }
+}
+
 async function loadEmployeeChanges(){
   try{
     const res = await window.storage.get('added-employees', false);
@@ -1053,6 +1073,7 @@ document.getElementById('case-submit-btn').addEventListener('click', async ()=>{
     attachments: filesToStore.map(f=>({name:f.name, type:f.type, size:f.size}))
   };
   CASES.unshift(rec);
+  await ensureEmployeeSynced(selectedEmp);
   await saveCases();
   if(filesToStore.length){
     const fullAttach = [];
