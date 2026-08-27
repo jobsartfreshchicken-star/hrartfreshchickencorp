@@ -2200,23 +2200,24 @@ assistantInputEl.addEventListener('input', ()=>{
 
   #login-box h2 {
     margin: 0 0 8px;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
     color: #1d1d1f;
   }
 
   #login-box p {
     margin: 0 0 24px;
     color: #6e6e73;
-    font-size: 13.5px;
+    font-size: var(--text-sm);
   }
 
   #login-box label {
     display: block;
     margin: 14px 0 6px;
     font-weight: 600;
-    font-size: 11.5px;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: .5px;
     color: #6e6e73;
@@ -2228,7 +2229,7 @@ assistantInputEl.addEventListener('input', ()=>{
     padding: 12px 14px;
     border: 1px solid #d2d2d7;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-family: inherit;
     color: #1d1d1f;
     outline: none;
@@ -2248,7 +2249,7 @@ assistantInputEl.addEventListener('input', ()=>{
     border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-family: inherit;
     color: #ffffff;
     background: linear-gradient(135deg,#0a84ff,#0071e3);
@@ -2263,7 +2264,7 @@ assistantInputEl.addEventListener('input', ()=>{
 
   #login-message {
     margin-top: 12px;
-    font-size: 13px;
+    font-size: var(--text-sm);
     color: #6e6e73;
   }
 </style>
