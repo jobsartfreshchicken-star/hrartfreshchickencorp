@@ -742,6 +742,12 @@ function getAllViolations(){
 function escapeHtml(s){
   return (s||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
+// Display-only: normalizes ALL-CAPS source data (e.g. department names) to Title Case
+// without touching the underlying value used for filtering/matching.
+function titleCase(s){
+  if(!s) return s;
+  return String(s).toLowerCase().replace(/(^|[\s\/&-])([a-z])/g, (m, sep, ch) => sep + ch.toUpperCase());
+}
 function sevClass(sev){
   if(!sev) return 'minor';
   const s = sev.toLowerCase();
@@ -872,7 +878,7 @@ function refreshFilterOptions(){
   const all = getAllEmployees();
   const deptSet = [...new Set(all.map(e=>e.dept).filter(Boolean))].sort();
   const curDept = deptFilterSel.value;
-  deptFilterSel.innerHTML = '<option value="">All Departments</option>' + deptSet.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+  deptFilterSel.innerHTML = '<option value="">All Departments</option>' + deptSet.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(titleCase(d))}</option>`).join('');
   if(deptSet.includes(curDept)) deptFilterSel.value = curDept;
 
   const curStatus = statusFilterSel.value;
@@ -912,8 +918,8 @@ function renderEmpTable(){
       return `
       <tr>
         <td><div class="emp-name">${escapeHtml(e.name)}</div><div class="emp-id">ID ${escapeHtml(e.id)}</div></td>
-        <td>${escapeHtml(e.dept)}</td>
-        <td>${escapeHtml(e.position)}</td>
+        <td>${escapeHtml(titleCase(e.dept))}</td>
+        <td>${escapeHtml(titleCase(e.position))}</td>
         <td>${fmtDate(e.hired)}</td>
         <td><span class="badge ${statusBadgeClass(e.status)}">${escapeHtml(statusDisplay[(e.status||'').toUpperCase()] || e.status || '—')}</span></td>
         <td>${n>0
@@ -1019,7 +1025,7 @@ empSearchInput.addEventListener('input', ()=>{
     empAcList.innerHTML = matches.map(e=>`
       <div class="ac-item" data-id="${escapeHtml(e.id)}">
         <div class="n">${escapeHtml(e.name)}</div>
-        <div class="d">${escapeHtml(e.dept)} · ${escapeHtml(e.position)}</div>
+        <div class="d">${escapeHtml(titleCase(e.dept))} · ${escapeHtml(titleCase(e.position))}</div>
       </div>
     `).join('');
   }
@@ -1031,7 +1037,7 @@ empAcList.addEventListener('click', (ev)=>{
   const emp = getAllEmployees().find(e=>String(e.id)===item.dataset.id);
   if(emp){
     selectedEmp = emp;
-    document.getElementById('emp-chip-text').textContent = `${emp.name} — ${emp.dept}`;
+    document.getElementById('emp-chip-text').textContent = `${emp.name} — ${titleCase(emp.dept)}`;
     document.getElementById('emp-chip').classList.add('show');
     empSearchInput.value='';
     empSearchInput.style.display='none';
@@ -1264,7 +1270,7 @@ function renderCasesTable(){
             ${rows.map(c=>`
               <tr>
                 <td>${escapeHtml(c.caseId)}<div class="emp-id">by ${escapeHtml(c.recordedBy)}</div></td>
-                <td><div class="emp-name">${escapeHtml(c.empName)}</div><div class="emp-id">${escapeHtml(c.dept)}</div></td>
+                <td><div class="emp-name">${escapeHtml(c.empName)}</div><div class="emp-id">${escapeHtml(titleCase(c.dept))}</div></td>
                 <td>${escapeHtml(c.violation)}${c.details?`<div class="emp-id" style="max-width:260px; white-space:normal;">${escapeHtml(c.details)}</div>`:''}</td>
                 <td><span class="badge ${sevClass(c.severity)}">${escapeHtml(c.severity||'—')}</span></td>
                 <td>${fmtDate(c.incidentDate)}</td>
@@ -1299,7 +1305,7 @@ function renderDashboard(){
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,9);
   document.getElementById('dept-breakdown').innerHTML = sorted.map(([d,c])=>`
     <div class="dept-row">
-      <div class="name">${escapeHtml(d)}</div>
+      <div class="name">${escapeHtml(titleCase(d))}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${(c/max*100).toFixed(0)}%"></div></div>
       <div class="count">${c}</div>
     </div>
@@ -1732,7 +1738,7 @@ function renderAnalyticsEmpTable(){
   body.innerHTML = rows.map(r=>`
     <tr>
       <td><span class="emp-name">${escapeHtml(r.empName)}</span></td>
-      <td>${escapeHtml(r.dept)}</td>
+      <td>${escapeHtml(titleCase(r.dept))}</td>
       <td><span class="badge ${violCountBadgeClass(r.count)}">${r.count} case${r.count===1?'':'s'}</span></td>
       <td>${escapeHtml(r.latestViolation)}<div class="emp-id">${fmtDate(r.latestDate)}</div></td>
       <td><span class="badge ${statusClass(r.latestStatus)}">${escapeHtml(r.latestStatus)}</span></td>
@@ -1839,7 +1845,7 @@ async function exportAllDataToExcel(){
     const empHeader = ['Employee ID','Name','Department','Position','Date Hired','Status','Violation Cases'];
     const empRows = allEmp.map(e=>{
       const n = allCases.filter(c=>String(c.empId)===String(e.id)).length;
-      return [e.id, e.name, e.dept, e.position||'', fmtDate(e.hired), statusDisplay[(e.status||'').toUpperCase()] || e.status || '', n];
+      return [e.id, e.name, titleCase(e.dept), titleCase(e.position)||'', fmtDate(e.hired), statusDisplay[(e.status||'').toUpperCase()] || e.status || '', n];
     }).sort((a,b)=> (a[1]||'').localeCompare(b[1]||''));
     const wsEmp = XLSX.utils.aoa_to_sheet([empHeader, ...empRows]);
     wsEmp['!cols'] = [{wch:14},{wch:30},{wch:16},{wch:28},{wch:12},{wch:14},{wch:16}];
@@ -1851,7 +1857,7 @@ async function exportAllDataToExcel(){
     const sortedCases = allCases.slice().sort((a,b)=> new Date(b.incidentDate) - new Date(a.incidentDate));
     const caseRows = sortedCases.map(c=>{
       const files = c.attachments || [];
-      return [c.empId, c.empName, c.dept, fmtDate(c.incidentDate), c.category||'', c.violation, c.severity||'', c.status, c.details||'', files.length, files.map(f=>f.name).join(', ')];
+      return [c.empId, c.empName, titleCase(c.dept), fmtDate(c.incidentDate), c.category||'', c.violation, c.severity||'', c.status, c.details||'', files.length, files.map(f=>f.name).join(', ')];
     });
     const wsCases = XLSX.utils.aoa_to_sheet([caseHeader, ...caseRows]);
     wsCases['!cols'] = [{wch:14},{wch:28},{wch:16},{wch:13},{wch:22},{wch:34},{wch:10},{wch:10},{wch:40},{wch:10},{wch:40}];
@@ -1884,7 +1890,7 @@ async function exportAllDataToExcel(){
     });
     const byEmpRows = Object.values(byEmpMap)
       .sort((a,b)=> b.count - a.count)
-      .map(r=>[r.empId, r.empName, r.dept, r.count, fmtDate(r.latestDate), r.latestViolation, r.latestStatus]);
+      .map(r=>[r.empId, r.empName, titleCase(r.dept), r.count, fmtDate(r.latestDate), r.latestViolation, r.latestStatus]);
     const byEmpHeader = ['Employee ID','Employee Name','Department','Total Cases','Latest Incident Date','Latest Violation','Latest Status'];
     const wsByEmp = XLSX.utils.aoa_to_sheet([byEmpHeader, ...byEmpRows]);
     wsByEmp['!cols'] = [{wch:14},{wch:28},{wch:16},{wch:12},{wch:18},{wch:34},{wch:12}];
@@ -2006,12 +2012,12 @@ function findEmployeesByFragment(frag){
 function describeEmployee(e){
   const n = violationCount(e.id);
   const status = statusDisplay[(e.status||'').toUpperCase()] || e.status || '—';
-  return `${e.name} — ID ${e.id}, ${e.position||'—'} in ${e.dept||'—'}. Status: ${status}. Hired ${fmtDate(e.hired)}. `
+  return `${e.name} — ID ${e.id}, ${titleCase(e.position)||'—'} in ${titleCase(e.dept)||'—'}. Status: ${status}. Hired ${fmtDate(e.hired)}. `
     + (n>0 ? `${n} violation case${n===1?'':'s'} on file.` : 'No violation cases on file.');
 }
 function listEmployees(list, verb){
   if(list.length===0) return `No employees match ${verb}.`;
-  const shown = list.slice(0,15).map(e=>`${e.name} (${e.dept||'—'})`).join(', ');
+  const shown = list.slice(0,15).map(e=>`${e.name} (${titleCase(e.dept)||'—'})`).join(', ');
   return `${list.length} employee${list.length===1?'':'s'} ${verb}: ${shown}` + (list.length>15 ? `, and ${list.length-15} more.` : '.');
 }
 
@@ -2044,7 +2050,7 @@ function localAssistantAnswer(rawText){
   for(const key in STATUS_KEYWORDS){
     if(q.includes(key)){
       const list = all.filter(e=>(e.status||'').toUpperCase()===STATUS_KEYWORDS[key]);
-      return listEmployees(list, `with ${STATUS_KEYWORDS[key]} status`);
+      return listEmployees(list, `with ${statusDisplay[STATUS_KEYWORDS[key]]} status`);
     }
   }
 
@@ -2053,7 +2059,7 @@ function localAssistantAnswer(rawText){
     const frag = deptMatch[1].trim();
     const depts = [...new Set(all.map(e=>e.dept).filter(Boolean))];
     const dept = depts.find(d=>d.toLowerCase().includes(frag) || frag.includes(d.toLowerCase()));
-    if(dept) return listEmployees(all.filter(e=>e.dept===dept), `in ${dept}`);
+    if(dept) return listEmployees(all.filter(e=>e.dept===dept), `in ${titleCase(dept)}`);
   }
 
   const violActionMatch = q.match(/(?:penalty|recommended action|punishment|violation)s?\s*(?:for|on)?\s*([a-z0-9 ,'-]+)/);

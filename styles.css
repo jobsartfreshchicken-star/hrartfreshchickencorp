@@ -119,19 +119,19 @@
 
   /* ===== Module sub-nav (tab row for the active module's own pages) ===== */
   .module-subnav{
-    display:none; align-items:center; gap:4px;
+    display:none; align-items:center; gap:26px;
     padding:0 36px; background:var(--paper); border-bottom:1px solid var(--line);
     overflow-x:auto;
   }
   .module-subnav.show{ display:flex; }
   .subnav-tab{
-    flex-shrink:0; padding:14px 14px 12px; font-size:13px; font-weight:600;
+    flex-shrink:0; padding:9px 1px 8px; font-size:12px; font-weight:500;
     color:var(--gray); cursor:pointer; white-space:nowrap;
     border-bottom:2px solid transparent; user-select:none;
     transition:color .15s, border-color .15s;
   }
   .subnav-tab:hover{ color:var(--ink); }
-  .subnav-tab.active{ color:var(--gold); border-bottom-color:var(--gold); }
+  .subnav-tab.active{ color:var(--ink); font-weight:600; border-bottom-color:var(--gold); }
 
   .view{ padding:30px 36px 60px; display:none; }
   .view.active{ display:block; }
