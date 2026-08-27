@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personnel & Conduct Registry</title>
+<title>Art Fresh Chicken Corp. | HR Management System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -13,37 +13,36 @@
 
   <aside class="sidebar">
     <div class="brand">
-      <div class="mark">HR</div>
-      <h1>Personnel &amp;<br>Conduct Registry</h1>
-      <p>Employee Records System</p>
+      <div class="mark">AFC</div>
+      <h1>Art Fresh<br>Chicken Corp.</h1>
+      <p>HR Management System</p>
     </div>
     <nav>
-      <div class="nav-item active" data-view="dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-        Dashboard
-      </div>
-      <div class="nav-item" data-view="employees">
+      <div class="nav-section-label">Modules</div>
+      <div class="nav-item module-nav-item active" data-module="employee-relations">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/><circle cx="17.5" cy="7.5" r="2.5"/><path d="M21.5 20c0-2.9-1.9-5.2-4.5-5.9"/></svg>
-        Employees
+        Employee Relations
       </div>
-      <div class="nav-section-label">Conduct</div>
-      <div class="nav-item" data-view="file">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
-        File a Case
+      <div class="nav-item module-nav-item" data-module="recruitment">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/><path d="M18 7.5v6M15 10.5h6"/></svg>
+        Recruitment
       </div>
-      <div class="nav-item" data-view="cases">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
-        Case Records
+      <div class="nav-item module-nav-item" data-module="comp-benefits">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.3 9.6c0-1.4 1.2-2.3 2.7-2.3s2.7.9 2.7 2.1c0 2.9-5.4 1.5-5.4 4.4 0 1.3 1.2 2.2 2.7 2.2s2.7-.9 2.7-2.2"/></svg>
+        Compensation &amp; Benefits
       </div>
-      <div class="nav-item" data-view="analytics">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
-        Violation Analytics
-      </div>
-      <div class="nav-item" data-view="violations">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l9 4.5v6c0 5-3.8 8.6-9 9.5-5.2-.9-9-4.5-9-9.5v-6L12 2z"/><path d="M12 8v5M12 16h.01"/></svg>
-        Violation Reference
+      <div class="nav-item module-nav-item" data-module="training">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l10 5-10 5-10-5 10-5z"/><path d="M6.5 10.7v5.1c0 1.6 2.7 3 5.5 3s5.5-1.4 5.5-3v-5.1"/><path d="M22 8.5v6"/></svg>
+        Training
       </div>
     </nav>
+    <div class="sidebar-tools">
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item module-nav-item" data-module="assistant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        AI Assistant
+      </div>
+    </div>
     <div class="sidebar-foot">
       Data sourced from the company masterlist.<br>Case records saved to this device.
     </div>
@@ -66,6 +65,15 @@
         <button class="btn ghost" id="export-all-btn" title="Download all system data as an organized Excel workbook (bundled with attachments as a ZIP when documents are attached)">⇩ Download All Data</button>
         <div class="date-pill" id="today-pill">—</div>
       </div>
+    </div>
+
+    <div class="module-subnav show" id="module-subnav">
+      <div class="subnav-tab active" data-view="dashboard">Dashboard</div>
+      <div class="subnav-tab" data-view="employees">Employees</div>
+      <div class="subnav-tab" data-view="file">File a Case</div>
+      <div class="subnav-tab" data-view="cases">Case Records</div>
+      <div class="subnav-tab" data-view="analytics">Violation Analytics</div>
+      <div class="subnav-tab" data-view="violations">Violation Reference</div>
     </div>
 
     <!-- DASHBOARD -->
@@ -462,6 +470,87 @@
       </div>
     </div>
 
+    <!-- AI ASSISTANT -->
+    <section class="view" id="view-assistant">
+      <div class="panel assistant-panel">
+        <div class="assistant-head">
+          <div>
+            <h3 style="margin:0; padding:0; border:none;">ChatGPT Assistant</h3>
+            <div class="sub" style="font-size:12px; color:var(--gray); margin-top:2px;">Draft memos, summarize case history, and get quick answers</div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="assistant-model-select" title="Model">
+              <option value="gpt-4o-mini">GPT-4o mini</option>
+              <option value="gpt-4o">GPT-4o</option>
+              <option value="gpt-5">GPT-5</option>
+            </select>
+            <button class="btn ghost" id="assistant-clear-btn" title="Clear conversation">Clear Chat</button>
+            <button class="btn ghost" id="assistant-key-btn" title="Set OpenAI API Key">⚙ API Key</button>
+          </div>
+        </div>
+        <div class="assistant-messages" id="assistant-messages">
+          <div class="empty-state" id="assistant-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <p>Ask about drafting a notice, summarizing an employee's case history, or anything else.</p>
+          </div>
+        </div>
+        <div class="assistant-input-row">
+          <textarea id="assistant-input" placeholder="Message ChatGPT…" rows="1"></textarea>
+          <button class="btn" id="assistant-send-btn">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECRUITMENT (placeholder module) -->
+    <section class="view" id="view-recruitment">
+      <div class="panel module-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/><path d="M18 7.5v6M15 10.5h6"/></svg>
+        <h3>Recruitment</h3>
+        <p>Job postings, applicant tracking, and hiring pipelines will live here. This module is coming soon.</p>
+      </div>
+    </section>
+
+    <!-- COMPENSATION & BENEFITS (placeholder module) -->
+    <section class="view" id="view-comp-benefits">
+      <div class="panel module-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.3 9.6c0-1.4 1.2-2.3 2.7-2.3s2.7.9 2.7 2.1c0 2.9-5.4 1.5-5.4 4.4 0 1.3 1.2 2.2 2.7 2.2s2.7-.9 2.7-2.2"/></svg>
+        <h3>Compensation &amp; Benefits</h3>
+        <p>Payroll bands, benefits enrollment, and compensation records will live here. This module is coming soon.</p>
+      </div>
+    </section>
+
+    <!-- TRAINING (placeholder module) -->
+    <section class="view" id="view-training">
+      <div class="panel module-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.5l10 5-10 5-10-5 10-5z"/><path d="M6.5 10.7v5.1c0 1.6 2.7 3 5.5 3s5.5-1.4 5.5-3v-5.1"/><path d="M22 8.5v6"/></svg>
+        <h3>Training</h3>
+        <p>Learning programs, certifications, and development tracking will live here. This module is coming soon.</p>
+      </div>
+    </section>
+
+    <!-- OPENAI API KEY MODAL -->
+    <div class="modal-overlay" id="assistant-key-modal-overlay">
+      <div class="modal-box" style="max-width:460px;">
+        <div class="modal-head">
+          <h3>OpenAI API Key</h3>
+          <span class="modal-x" id="assistant-key-modal-close">✕</span>
+        </div>
+        <div class="modal-body" style="padding-bottom:22px;">
+          <div class="field full">
+            <label>API Key</label>
+            <input type="password" id="assistant-key-input" placeholder="sk-...">
+          </div>
+          <p style="font-size:11.5px; color:var(--gray-light); line-height:1.5; margin-top:4px;">
+            Stored only in this browser (localStorage) and sent directly from your browser to OpenAI. It is never saved to the database or shared with anyone else using this app.
+          </p>
+        </div>
+        <div class="form-actions">
+          <button class="btn ghost" id="assistant-key-remove">Remove Key</button>
+          <button class="btn" id="assistant-key-save">Save Key</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -682,7 +771,8 @@ function toast(msg){
 }
 
 // ---------- navigation ----------
-const titles = {
+// Employee Relations sub-views live behind the module sub-nav tab row.
+const subviewTitles = {
   dashboard:['Dashboard','Overview of personnel and active disciplinary matters'],
   employees:['Employees','Complete masterlist of active personnel'],
   file:['File a Case','Record a new violation and set notice status'],
@@ -690,6 +780,20 @@ const titles = {
   analytics:['Violation Analytics','Conduct trends across the organization, updated in real time'],
   violations:['Violation Reference','Standard violation categories and recommended actions']
 };
+// Other sidebar modules map straight to a single view.
+const moduleTitles = {
+  recruitment:['Recruitment','Job openings, applicants, and the hiring pipeline'],
+  'comp-benefits':['Compensation & Benefits','Payroll, benefits, and compensation records'],
+  training:['Training','Employee learning and development programs'],
+  assistant:['AI Assistant','Chat with ChatGPT for drafting notices, summarizing cases, and more']
+};
+const moduleViewIds = {
+  recruitment:'view-recruitment',
+  'comp-benefits':'view-comp-benefits',
+  training:'view-training',
+  assistant:'view-assistant'
+};
+
 const sidebarEl = document.querySelector('.sidebar');
 const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 function openSidebar(){ sidebarEl.classList.add('open'); sidebarBackdrop.classList.add('show'); }
@@ -704,20 +808,46 @@ document.getElementById('sidebar-toggle-btn').addEventListener('click', ()=>{
 });
 sidebarBackdrop.addEventListener('click', closeSidebar);
 
-document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click', ()=>{
-    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-    item.classList.add('active');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    const view = item.dataset.view;
-    document.getElementById('view-'+view).classList.add('active');
-    document.getElementById('topbar-title').textContent = titles[view][0];
-    document.getElementById('topbar-sub').textContent = titles[view][1];
-    closeSidebar();
-    if(view==='dashboard') renderDashboard();
-    if(view==='cases') renderCasesTable();
-    if(view==='analytics') renderAnalytics();
-  });
+const moduleSubnav = document.getElementById('module-subnav');
+let currentSubview = 'dashboard';
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setTopbarText(title, sub){
+  document.getElementById('topbar-title').textContent = title;
+  document.getElementById('topbar-sub').textContent = sub;
+}
+
+function activateSubview(view){
+  currentSubview = view;
+  document.querySelectorAll('.subnav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===view));
+  showView('view-'+view);
+  setTopbarText(subviewTitles[view][0], subviewTitles[view][1]);
+  if(view==='dashboard') renderDashboard();
+  if(view==='cases') renderCasesTable();
+  if(view==='analytics') renderAnalytics();
+}
+
+function activateModule(mod){
+  document.querySelectorAll('.module-nav-item').forEach(i=>i.classList.toggle('active', i.dataset.module===mod));
+  if(mod==='employee-relations'){
+    moduleSubnav.classList.add('show');
+    activateSubview(currentSubview);
+  } else {
+    moduleSubnav.classList.remove('show');
+    showView(moduleViewIds[mod]);
+    setTopbarText(moduleTitles[mod][0], moduleTitles[mod][1]);
+  }
+  closeSidebar();
+}
+
+document.querySelectorAll('.module-nav-item').forEach(item=>{
+  item.addEventListener('click', ()=> activateModule(item.dataset.module));
+});
+document.querySelectorAll('.subnav-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=> activateSubview(tab.dataset.view));
 });
 
 document.getElementById('today-pill').textContent = new Date().toLocaleDateString('en-US',{weekday:'long', year:'numeric', month:'long', day:'numeric'});
@@ -1799,6 +1929,131 @@ async function exportAllDataToExcel(){
 }
 document.getElementById('export-all-btn').addEventListener('click', exportAllDataToExcel);
 
+// ---------- AI Assistant (ChatGPT) ----------
+const OPENAI_KEY_STORAGE = 'hrart-openai-api-key';
+let assistantHistory = [];
+
+function getOpenAIKey(){
+  try{ return localStorage.getItem(OPENAI_KEY_STORAGE) || ''; }catch(e){ return ''; }
+}
+function setOpenAIKey(key){
+  try{
+    if(key) localStorage.setItem(OPENAI_KEY_STORAGE, key);
+    else localStorage.removeItem(OPENAI_KEY_STORAGE);
+  }catch(e){}
+}
+
+const assistantMessagesEl = document.getElementById('assistant-messages');
+const assistantInputEl = document.getElementById('assistant-input');
+const assistantSendBtn = document.getElementById('assistant-send-btn');
+const assistantKeyModal = document.getElementById('assistant-key-modal-overlay');
+const assistantKeyInput = document.getElementById('assistant-key-input');
+const ASSISTANT_EMPTY_HTML = document.getElementById('assistant-empty').outerHTML;
+
+function renderAssistantMessage(cls, text){
+  const empty = document.getElementById('assistant-empty');
+  if(empty) empty.remove();
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.textContent = text;
+  assistantMessagesEl.appendChild(div);
+  assistantMessagesEl.scrollTop = assistantMessagesEl.scrollHeight;
+  return div;
+}
+
+function openAssistantKeyModal(){
+  assistantKeyInput.value = getOpenAIKey();
+  assistantKeyModal.classList.add('show');
+}
+function closeAssistantKeyModal(){ assistantKeyModal.classList.remove('show'); }
+
+document.getElementById('assistant-key-btn').addEventListener('click', openAssistantKeyModal);
+document.getElementById('assistant-key-modal-close').addEventListener('click', closeAssistantKeyModal);
+assistantKeyModal.addEventListener('click', (ev)=>{ if(ev.target===assistantKeyModal) closeAssistantKeyModal(); });
+
+document.getElementById('assistant-key-save').addEventListener('click', ()=>{
+  const key = assistantKeyInput.value.trim();
+  if(!key){ toast('Enter a valid API key.'); return; }
+  setOpenAIKey(key);
+  closeAssistantKeyModal();
+  toast('API key saved.');
+});
+document.getElementById('assistant-key-remove').addEventListener('click', ()=>{
+  setOpenAIKey('');
+  assistantKeyInput.value = '';
+  toast('API key removed.');
+});
+
+document.getElementById('assistant-clear-btn').addEventListener('click', ()=>{
+  assistantHistory = [];
+  assistantMessagesEl.innerHTML = ASSISTANT_EMPTY_HTML;
+});
+
+async function sendAssistantMessage(){
+  const text = assistantInputEl.value.trim();
+  if(!text) return;
+  const key = getOpenAIKey();
+  if(!key){
+    toast('Set your OpenAI API key first.');
+    openAssistantKeyModal();
+    return;
+  }
+  assistantInputEl.value = '';
+  assistantInputEl.style.height = 'auto';
+  renderAssistantMessage('user', text);
+  assistantHistory.push({ role:'user', content: text });
+  assistantSendBtn.disabled = true;
+  const pending = renderAssistantMessage('assistant pending', 'Thinking…');
+
+  try{
+    const model = document.getElementById('assistant-model-select').value;
+    const { data, error } = await supabaseClient.functions.invoke('openai-proxy', {
+      body: {
+        model,
+        apiKey: key,
+        messages: [
+          { role:'system', content:"You are a helpful HR assistant for a small company's personnel and conduct registry. Help draft memos, notices, and summarize disciplinary case information concisely and professionally." },
+          ...assistantHistory
+        ]
+      }
+    });
+    pending.remove();
+    if(error){
+      let msg = error.message || 'Request failed.';
+      try{
+        const ctx = await error.context.json();
+        if(ctx && ctx.error && ctx.error.message) msg = ctx.error.message;
+      }catch(_){}
+      renderAssistantMessage('error', msg);
+      return;
+    }
+    if(data && data.error){
+      renderAssistantMessage('error', data.error.message || 'Request failed.');
+      return;
+    }
+    const reply = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '(no response)';
+    renderAssistantMessage('assistant', reply);
+    assistantHistory.push({ role:'assistant', content: reply });
+  }catch(e){
+    pending.remove();
+    renderAssistantMessage('error', 'Error contacting assistant: ' + e.message);
+  }finally{
+    assistantSendBtn.disabled = false;
+  }
+}
+
+assistantSendBtn.addEventListener('click', sendAssistantMessage);
+assistantInputEl.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendAssistantMessage();
+  }
+});
+assistantInputEl.addEventListener('input', ()=>{
+  assistantInputEl.style.height = 'auto';
+  assistantInputEl.style.height = Math.min(assistantInputEl.scrollHeight, 140) + 'px';
+});
+
 // ---------- init ----------
 (async function init(){
   await loadCases();
@@ -1817,45 +2072,64 @@ document.getElementById('export-all-btn').addEventListener('click', exportAllDat
   #login-screen {
     position: fixed;
     inset: 0;
-    background: #f5f6f8;
+    background: #f5f5f7;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 99999;
-    font-family: Inter, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 
   #login-box {
     width: 100%;
     max-width: 420px;
-    background: white;
-    padding: 32px;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.12);
+    background: #ffffff;
+    padding: 36px;
+    border-radius: 18px;
+    border: 1px solid #d2d2d7;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 20px 50px -12px rgba(0,0,0,.14);
   }
 
   #login-box h2 {
     margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #1d1d1f;
   }
 
   #login-box p {
     margin: 0 0 24px;
-    color: #666;
+    color: #6e6e73;
+    font-size: 13.5px;
   }
 
   #login-box label {
     display: block;
     margin: 14px 0 6px;
     font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #6e6e73;
   }
 
   #login-box input {
     width: 100%;
     box-sizing: border-box;
-    padding: 12px;
-    border: 1px solid #ccc;
+    padding: 12px 14px;
+    border: 1px solid #d2d2d7;
     border-radius: 8px;
     font-size: 14px;
+    font-family: inherit;
+    color: #1d1d1f;
+    outline: none;
+    transition: border-color .12s, box-shadow .12s;
+  }
+
+  #login-box input:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.15);
   }
 
   #login-btn {
@@ -1863,14 +2137,26 @@ document.getElementById('export-all-btn').addEventListener('click', exportAllDat
     margin-top: 20px;
     padding: 12px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: inherit;
+    color: #ffffff;
+    background: linear-gradient(135deg,#0a84ff,#0071e3);
+    box-shadow: 0 4px 14px -6px rgba(0,113,227,0.5);
+    transition: transform .12s, box-shadow .12s;
+  }
+
+  #login-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px -6px rgba(0,113,227,0.6);
   }
 
   #login-message {
     margin-top: 12px;
-    font-size: 14px;
+    font-size: 13px;
+    color: #6e6e73;
   }
 </style>
 
