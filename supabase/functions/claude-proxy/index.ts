@@ -1,6 +1,8 @@
-// Proxies chat requests to OpenAI so the browser can call ChatGPT without hitting
-// OpenAI's CORS block on direct browser requests. Each caller supplies their own
-// OpenAI API key in the request body; it is forwarded to OpenAI and never stored.
+// Proxies chat requests to Claude (Anthropic) so the browser can call it without
+// hitting CORS restrictions on direct browser requests. Each caller supplies their
+// own Anthropic API key in the request body; it is forwarded to Anthropic and never stored.
+import Anthropic from "npm:@anthropic-ai/sdk";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -13,10 +15,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { model, messages, apiKey } = await req.json();
+    const { model, system, messages, apiKey } = await req.json();
 
     if (!apiKey || typeof apiKey !== 'string') {
-      return new Response(JSON.stringify({ error: { message: 'Missing OpenAI API key.' } }), {
+      return new Response(JSON.stringify({ error: { message: 'Missing Anthropic API key.' } }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -28,24 +30,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ model, messages }),
+    const client = new Anthropic({ apiKey });
+    const message = await client.messages.create({
+      model,
+      max_tokens: 16000,
+      system,
+      messages,
     });
 
-    const body = await openaiRes.text();
-
-    return new Response(body, {
-      status: openaiRes.status,
+    return new Response(JSON.stringify(message), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: { message: 'Proxy error: ' + (e instanceof Error ? e.message : String(e)) } }), {
-      status: 500,
+    const status = (e && typeof e.status === 'number') ? e.status : 500;
+    const message = (e && e.message) ? e.message : String(e);
+    return new Response(JSON.stringify({ error: { message } }), {
+      status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
