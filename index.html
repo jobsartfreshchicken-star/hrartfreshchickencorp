@@ -377,9 +377,14 @@
             <input type="date" id="case-date">
           </div>
 
-          <div class="field full">
+          <div class="field full autocomplete" id="emp-ac-wrap">
             <label>Employee</label>
-            <select id="case-emp-select"><option value="">Select employee…</option></select>
+            <input type="text" id="case-emp-search" placeholder="Type a name to search employees…" autocomplete="off">
+            <div class="ac-list" id="emp-ac-list"></div>
+            <div class="selected-chip" id="emp-chip">
+              <span id="emp-chip-text"></span>
+              <span class="x" id="emp-chip-clear">✕</span>
+            </div>
           </div>
 
           <div class="field">
@@ -391,9 +396,14 @@
             <input type="text" id="case-class-display" readonly disabled placeholder="Select an offense below">
           </div>
 
-          <div class="field full">
+          <div class="field full autocomplete" id="viol-ac-wrap">
             <label>Offense</label>
-            <select id="case-viol-select"><option value="">Select offense…</option></select>
+            <input type="text" id="case-viol-search" placeholder="Type to search offenses, e.g. tardiness…" autocomplete="off">
+            <div class="ac-list" id="viol-ac-list"></div>
+            <div class="selected-chip" id="viol-chip">
+              <span id="viol-chip-text"></span>
+              <span class="x" id="viol-chip-clear">✕</span>
+            </div>
           </div>
 
           <div class="field full">
@@ -1114,41 +1124,15 @@ function refreshFilterOptions(){
   refreshCaseFormDropdowns();
 }
 
-// ---------- File-a-Case dropdowns ----------
+// ---------- File-a-Case: Department dropdown ----------
+// (Employee and Offense are search-as-you-type comboboxes, further down --
+// with 400+ employees and 90+ offenses, a plain <select> is unusable, so those
+// only ever show a handful of matches at a time instead of the whole list.)
 function refreshCaseFormDropdowns(){
-  const empSel = document.getElementById('case-emp-select');
-  if(!empSel) return; // form not on the page yet
-  const curEmp = empSel.value;
-  const byDept = {};
-  getAllEmployees().forEach(e=>{
-    const d = e.dept || 'OTHER';
-    (byDept[d] = byDept[d] || []).push(e);
-  });
-  const deptNames = Object.keys(byDept).sort();
-  empSel.innerHTML = '<option value="">Select employee…</option>' + deptNames.map(d=>`
-    <optgroup label="${escapeHtml(titleCase(d))}">
-      ${byDept[d].sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`).join('')}
-    </optgroup>
-  `).join('');
-  if([...empSel.options].some(o=>o.value===curEmp)) empSel.value = curEmp;
-
   const deptSel = document.getElementById('case-dept-select');
+  if(!deptSel) return; // form not on the page yet
+  const deptNames = [...new Set(getAllEmployees().map(e=>e.dept).filter(Boolean))].sort();
   deptSel.innerHTML = '<option value="">—</option>' + deptNames.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(titleCase(d))}</option>`).join('');
-
-  const violSel = document.getElementById('case-viol-select');
-  const curViol = violSel.value;
-  const byCat = {};
-  getAllViolations().forEach(v=>{
-    const c = v.category || 'Other';
-    (byCat[c] = byCat[c] || []).push(v);
-  });
-  const catNames = Object.keys(byCat).sort();
-  violSel.innerHTML = '<option value="">Select offense…</option>' + catNames.map(c=>`
-    <optgroup label="${escapeHtml(c)}">
-      ${byCat[c].sort((a,b)=>a.name.localeCompare(b.name)).map(v=>`<option value="${escapeHtml(v._id)}">${escapeHtml(v.name)}</option>`).join('')}
-    </optgroup>
-  `).join('');
-  if([...violSel.options].some(o=>o.value===curViol)) violSel.value = curViol;
 }
 
 function violationCount(empId){
@@ -1275,20 +1259,94 @@ document.getElementById('viol-table-body').addEventListener('click', async (ev)=
   toast('Violation removed.');
 });
 
-// ---------- Employee / Offense dropdowns ----------
-const empSelectEl = document.getElementById('case-emp-select');
-const violSelectEl = document.getElementById('case-viol-select');
+// ---------- Employee / Offense search comboboxes ----------
+// With 400+ employees and 90+ offenses, a plain dropdown is unusable, so these
+// only ever list a handful of matches at a time -- type to narrow them down.
+const AC_LIMIT = 5;
 
-empSelectEl.addEventListener('change', ()=>{
-  const emp = getAllEmployees().find(e=>String(e.id)===empSelectEl.value);
-  selectedEmp = emp || null;
-  document.getElementById('case-dept-select').value = emp ? emp.dept : '';
+const empSearchInput = document.getElementById('case-emp-search');
+const empAcList = document.getElementById('emp-ac-list');
+function renderEmpAcList(q){
+  const all = getAllEmployees().slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const matches = (q.length===0 ? all : all.filter(e=>e.name.toLowerCase().includes(q))).slice(0, AC_LIMIT);
+  empAcList.innerHTML = matches.length===0
+    ? `<div class="ac-item" style="color:var(--gray-light);">No matching employee</div>`
+    : matches.map(e=>`
+        <div class="ac-item" data-id="${escapeHtml(e.id)}">
+          <div class="n">${escapeHtml(e.name)}</div>
+          <div class="d">${escapeHtml(titleCase(e.dept))} · ${escapeHtml(titleCase(e.position))}</div>
+        </div>
+      `).join('');
+  empAcList.classList.add('show');
+}
+empSearchInput.addEventListener('focus', ()=> renderEmpAcList(empSearchInput.value.trim().toLowerCase()));
+empSearchInput.addEventListener('input', ()=> renderEmpAcList(empSearchInput.value.trim().toLowerCase()));
+empAcList.addEventListener('click', (ev)=>{
+  const item = ev.target.closest('.ac-item');
+  if(!item || !item.dataset.id) return;
+  const emp = getAllEmployees().find(e=>String(e.id)===item.dataset.id);
+  if(emp){
+    selectedEmp = emp;
+    document.getElementById('case-dept-select').value = emp.dept || '';
+    document.getElementById('emp-chip-text').textContent = `${emp.name} — ${titleCase(emp.dept)}`;
+    document.getElementById('emp-chip').classList.add('show');
+    empSearchInput.value='';
+    empSearchInput.style.display='none';
+    empAcList.classList.remove('show');
+  }
+});
+document.getElementById('emp-chip-clear').addEventListener('click', ()=>{
+  selectedEmp = null;
+  document.getElementById('case-dept-select').value = '';
+  document.getElementById('emp-chip').classList.remove('show');
+  empSearchInput.style.display='block';
+  empSearchInput.value='';
+  empSearchInput.focus();
 });
 
-violSelectEl.addEventListener('change', ()=>{
-  const v = getAllViolations().find(x=>x._id===violSelectEl.value);
-  selectedViol = v || null;
-  document.getElementById('case-class-display').value = v ? classOf(v.category) : '';
+const violSearchInput = document.getElementById('case-viol-search');
+const violAcList = document.getElementById('viol-ac-list');
+function renderViolAcList(q){
+  const all = getAllViolations().slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const matches = (q.length===0 ? all : all.filter(v=>v.name.toLowerCase().includes(q) || v.category.toLowerCase().includes(q))).slice(0, AC_LIMIT);
+  violAcList.innerHTML = matches.length===0
+    ? `<div class="ac-item" style="color:var(--gray-light);">No matching offense</div>`
+    : matches.map(v=>`
+        <div class="ac-item" data-vid="${escapeHtml(v._id)}">
+          <div class="n">${escapeHtml(v.name)}</div>
+          <div class="d">${escapeHtml(v.category)}</div>
+        </div>
+      `).join('');
+  violAcList.classList.add('show');
+}
+violSearchInput.addEventListener('focus', ()=> renderViolAcList(violSearchInput.value.trim().toLowerCase()));
+violSearchInput.addEventListener('input', ()=> renderViolAcList(violSearchInput.value.trim().toLowerCase()));
+violAcList.addEventListener('click', (ev)=>{
+  const item = ev.target.closest('.ac-item');
+  if(!item || item.dataset.vid===undefined) return;
+  const v = getAllViolations().find(x=>x._id===item.dataset.vid);
+  if(v){
+    selectedViol = v;
+    document.getElementById('case-class-display').value = classOf(v.category);
+    document.getElementById('viol-chip-text').textContent = `${v.name} (${classOf(v.category) || v.severity})`;
+    document.getElementById('viol-chip').classList.add('show');
+    violSearchInput.value='';
+    violSearchInput.style.display='none';
+    violAcList.classList.remove('show');
+  }
+});
+document.getElementById('viol-chip-clear').addEventListener('click', ()=>{
+  selectedViol = null;
+  document.getElementById('case-class-display').value = '';
+  document.getElementById('viol-chip').classList.remove('show');
+  violSearchInput.style.display='block';
+  violSearchInput.value='';
+  violSearchInput.focus();
+});
+
+document.addEventListener('click', (ev)=>{
+  if(!document.getElementById('emp-ac-wrap').contains(ev.target)) empAcList.classList.remove('show');
+  if(!document.getElementById('viol-ac-wrap').contains(ev.target)) violAcList.classList.remove('show');
 });
 
 function newCaseReference(){
@@ -1359,8 +1417,10 @@ document.getElementById('case-attach-list').addEventListener('click', (ev)=>{
 // ---------- Submit case ----------
 function resetForm(){
   selectedEmp = null; selectedViol = null;
-  empSelectEl.value = '';
-  violSelectEl.value = '';
+  document.getElementById('emp-chip').classList.remove('show');
+  document.getElementById('viol-chip').classList.remove('show');
+  empSearchInput.style.display='block'; empSearchInput.value=''; empAcList.classList.remove('show');
+  violSearchInput.style.display='block'; violSearchInput.value=''; violAcList.classList.remove('show');
   document.getElementById('case-dept-select').value = '';
   document.getElementById('case-class-display').value = '';
   document.getElementById('case-details').value='';
