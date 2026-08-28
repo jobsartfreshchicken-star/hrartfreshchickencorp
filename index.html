@@ -849,21 +849,20 @@ function deriveUserName(user){
   const first = local.split(/[.\-_+]/)[0];
   return first ? first.charAt(0).toUpperCase() + first.slice(1) : '';
 }
+function greetingTitle(){
+  const name = currentUserName ? `, ${currentUserName}` : '';
+  return `${greetingWord()}${name}!`;
+}
 function applyUserSession(session){
   currentUserName = deriveUserName(session && session.user);
-  if(currentSubview === 'dashboard') refreshDashboardGreeting();
-}
-function refreshDashboardGreeting(){
-  const name = currentUserName ? `, ${currentUserName}` : '';
-  setTopbarText(`${greetingWord()}${name}!`, subviewTitles.dashboard[1]);
+  document.getElementById('topbar-title').textContent = greetingTitle();
 }
 
 function activateSubview(view){
   currentSubview = view;
   document.querySelectorAll('.subnav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===view));
   showView('view-'+view);
-  if(view === 'dashboard') refreshDashboardGreeting();
-  else setTopbarText(subviewTitles[view][0], subviewTitles[view][1]);
+  setTopbarText(greetingTitle(), subviewTitles[view][1]);
   if(view==='dashboard') renderDashboard();
   if(view==='cases') renderCasesTable();
   if(view==='analytics') renderAnalytics();
@@ -877,7 +876,7 @@ function activateModule(mod){
   } else {
     moduleSubnav.classList.remove('show');
     showView(moduleViewIds[mod]);
-    setTopbarText(moduleTitles[mod][0], moduleTitles[mod][1]);
+    setTopbarText(greetingTitle(), moduleTitles[mod][1]);
   }
   closeSidebar();
 }
