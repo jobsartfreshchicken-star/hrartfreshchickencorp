@@ -84,11 +84,31 @@
 
     <!-- DASHBOARD -->
     <section class="view active" id="view-dashboard">
+      <div class="panel" style="margin-bottom:18px;">
+        <h3 style="border-bottom:none; padding-bottom:0; margin-bottom:10px;">Search Violations</h3>
+        <div class="field full autocomplete" id="dash-search-wrap" style="margin-bottom:0;">
+          <input type="text" id="dash-viol-search" placeholder="Search by employee name, reference number, or offense…" autocomplete="off">
+          <div class="search-results" id="dash-search-results"></div>
+        </div>
+      </div>
+
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Total Employees</div><div class="num" id="stat-total-emp">0</div><div class="foot">Across all departments</div></div>
         <div class="stat-card"><div class="label">Active Cases</div><div class="num" id="stat-active-cases">0</div><div class="foot">Served or ongoing</div></div>
         <div class="stat-card"><div class="label">Employees With Violations</div><div class="num" id="stat-emp-viol">0</div><div class="foot">Unique individuals on record</div></div>
         <div class="stat-card"><div class="label">Resolved Cases</div><div class="num" id="stat-resolved">0</div><div class="foot">Marked closed</div></div>
+      </div>
+
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card clickable" id="class-card-a" data-class="Class A">
+          <div class="label">Class A Offenses</div><div class="num" id="stat-class-a">0</div><div class="foot" id="stat-class-a-pct">0% of all cases</div>
+        </div>
+        <div class="stat-card clickable" id="class-card-b" data-class="Class B">
+          <div class="label">Class B Offenses</div><div class="num" id="stat-class-b">0</div><div class="foot" id="stat-class-b-pct">0% of all cases</div>
+        </div>
+        <div class="stat-card clickable" id="class-card-c" data-class="Class C">
+          <div class="label">Class C Offenses</div><div class="num" id="stat-class-c">0</div><div class="foot" id="stat-class-c-pct">0% of all cases</div>
+        </div>
       </div>
 
       <div class="panel-grid">
@@ -101,7 +121,26 @@
           <div id="recent-cases"></div>
         </div>
       </div>
+
+      <div class="panel" style="margin-top:14px;">
+        <h3>Violations by Department</h3>
+        <div class="foot" style="font-size:var(--text-xs); color:var(--gray-light); margin:-4px 0 10px;">Number of distinct employees with at least one case on file, by department</div>
+        <div id="dept-violations"></div>
+      </div>
     </section>
+
+    <!-- CASE LIST MODAL (dashboard drill-down) -->
+    <div class="modal-overlay" id="case-list-modal-overlay">
+      <div class="modal-box" style="max-width:640px;">
+        <div class="modal-head">
+          <h3 id="case-list-modal-title">Cases</h3>
+          <span class="modal-x" id="case-list-modal-close">✕</span>
+        </div>
+        <div class="modal-body" style="padding-bottom:22px;">
+          <div id="case-list-modal-body"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- EMPLOYEES -->
     <section class="view" id="view-employees">
@@ -200,25 +239,94 @@
       </div>
     </div>
 
-    <!-- CHANGE CASE STATUS MODAL -->
+    <!-- UPDATE CASE MODAL (stage-aware: Served -> Ongoing -> Closed) -->
     <div class="modal-overlay" id="case-status-modal-overlay">
-      <div class="modal-box" style="max-width:420px;">
+      <div class="modal-box" style="max-width:480px;">
         <div class="modal-head">
-          <h3>Update Case Status</h3>
+          <h3 id="case-status-modal-heading">Update Case</h3>
           <span class="modal-x" id="case-status-modal-close">✕</span>
         </div>
         <div class="modal-body">
           <div class="emp-id" id="case-status-modal-info" style="font-size:14px; color:var(--ink); font-weight:600; margin-bottom:14px;"></div>
-          <div class="field">
-            <label>New Status</label>
-            <select id="modal-case-status-select">
-              <option value="Served">Notice Served</option>
-              <option value="Ongoing">Case Ongoing</option>
-              <option value="Closed">Case Closed</option>
-            </select>
+
+          <!-- shown when the case is currently "Served" -> moving it to "Ongoing" -->
+          <div id="stage-ongoing-fields">
+            <div class="field">
+              <label>Admin Hearing?</label>
+              <select id="hearing-held">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div class="sub-fields" id="hearing-sub-fields">
+              <div class="field">
+                <label>Venue</label>
+                <select id="hearing-venue">
+                  <option value="Zoom">Zoom</option>
+                  <option value="In person">In person</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Date &amp; Time of Hearing</label>
+                <input type="datetime-local" id="hearing-datetime">
+              </div>
+              <div class="field full">
+                <label>Attendance Proof (optional)</label>
+                <label class="file-drop" id="hearing-proof-drop">
+                  ⇪ Click to upload proof the employee attended
+                  <input type="file" id="hearing-proof-input">
+                </label>
+                <div class="attach-list" id="hearing-proof-list"></div>
+              </div>
+            </div>
           </div>
+
+          <!-- shown when the case is currently "Ongoing" -> closing it -->
+          <div id="stage-closed-fields">
+            <div class="field">
+              <label>Decision</label>
+              <select id="case-decision">
+                <option value="Verbal warning">Verbal warning</option>
+                <option value="Written warning">Written warning</option>
+                <option value="Suspension">Suspension</option>
+                <option value="Termination">Termination</option>
+                <option value="Dismissed">Dismissed</option>
+              </select>
+            </div>
+            <div class="sub-fields" id="decision-verbal-fields">
+              <div class="field full">
+                <label>Date Talked To / Followed Up (settles the case)</label>
+                <input type="date" id="verbal-followup-date">
+              </div>
+            </div>
+            <div class="sub-fields" id="decision-written-fields">
+              <div class="field">
+                <label>Date Issued</label>
+                <input type="date" id="written-issued-date">
+              </div>
+              <div class="field">
+                <label>Attachment</label>
+                <label class="file-drop" id="written-attach-drop">
+                  ⇪ Upload the written warning
+                  <input type="file" id="written-attach-input">
+                </label>
+                <div class="attach-list" id="written-attach-list"></div>
+              </div>
+            </div>
+            <div class="field" style="margin-top:10px;">
+              <label>Date Closed</label>
+              <input type="date" id="date-closed">
+            </div>
+            <div class="field full">
+              <label>Closing Remarks</label>
+              <textarea id="closing-remarks" placeholder="Optional remarks…"></textarea>
+            </div>
+          </div>
+
+          <!-- shown when the case is already "Closed" -->
+          <div id="stage-summary"></div>
         </div>
-        <div class="form-actions">
+        <div class="form-actions" id="case-status-modal-actions">
           <button class="btn ghost" id="case-status-modal-cancel">Cancel</button>
           <button class="btn" id="case-status-modal-save">Update Status</button>
         </div>
@@ -255,37 +363,40 @@
       </div>
     </div>
 
-    <!-- FILE A CASE -->
+    <!-- FILE A NEW VIOLATION -->
     <section class="view" id="view-file">
       <div class="panel" style="max-width:820px;">
         <h3>New Disciplinary Record</h3>
         <div class="form-grid">
-          <div class="field full autocomplete" id="emp-ac-wrap">
-            <label>Employee</label>
-            <input type="text" id="case-emp-search" placeholder="Start typing an employee name…" autocomplete="off">
-            <div class="ac-list" id="emp-ac-list"></div>
-            <div class="selected-chip" id="emp-chip">
-              <span id="emp-chip-text"></span>
-              <span class="x" id="emp-chip-clear">✕</span>
-            </div>
+          <div class="field">
+            <label>Reference No.</label>
+            <input type="text" id="case-ref-display" readonly disabled>
           </div>
-
-          <div class="field full autocomplete" id="viol-ac-wrap">
-            <label>Violation</label>
-            <input type="text" id="case-viol-search" placeholder="Start typing a violation, e.g. tardiness…" autocomplete="off">
-            <div class="ac-list" id="viol-ac-list"></div>
-            <div class="selected-chip" id="viol-chip">
-              <span id="viol-chip-text"></span>
-              <span class="x" id="viol-chip-clear">✕</span>
-            </div>
-            <div class="sev-note" id="viol-sev-note"></div>
-          </div>
-
           <div class="field">
             <label>Incident Date</label>
             <input type="date" id="case-date">
           </div>
+
+          <div class="field full">
+            <label>Employee</label>
+            <select id="case-emp-select"><option value="">Select employee…</option></select>
+          </div>
+
           <div class="field">
+            <label>Department</label>
+            <select id="case-dept-select" disabled><option value="">—</option></select>
+          </div>
+          <div class="field">
+            <label>Classification</label>
+            <input type="text" id="case-class-display" readonly disabled placeholder="Select an offense below">
+          </div>
+
+          <div class="field full">
+            <label>Offense</label>
+            <select id="case-viol-select"><option value="">Select offense…</option></select>
+          </div>
+
+          <div class="field full">
             <label>Recorded By</label>
             <input type="text" id="case-recorder" placeholder="Your name">
           </div>
@@ -295,13 +406,35 @@
             <textarea id="case-details" placeholder="Describe what happened…"></textarea>
           </div>
 
+          <div class="field full" style="margin-top:6px; padding-top:14px; border-top:1px solid var(--line);">
+            <h3 style="font-size:var(--text-lg); border:none; padding:0; margin:0 0 4px;">Notice Served</h3>
+          </div>
+          <div class="field">
+            <label>Date Notice Served</label>
+            <input type="date" id="notice-date">
+          </div>
+          <div class="field">
+            <label>Period to Respond</label>
+            <select id="response-period">
+              <option value="24 hours">24 hours</option>
+              <option value="48 hours">48 hours</option>
+              <option value="72 hours">72 hours</option>
+              <option value="4 days">4 days</option>
+              <option value="5 days">5 days</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mode of Serving</label>
+            <select id="serve-mode">
+              <option value="Email">Email</option>
+              <option value="Personal">Personal</option>
+              <option value="Mail">Mail</option>
+            </select>
+          </div>
+          <div class="field"></div>
           <div class="field full">
-            <label>Notice Status</label>
-            <div class="status-select" id="case-status-select">
-              <button type="button" class="served" data-status="Served">Notice Served</button>
-              <button type="button" class="ongoing" data-status="Ongoing">Case Ongoing</button>
-              <button type="button" class="closed" data-status="Closed">Case Closed</button>
-            </div>
+            <label>Remarks</label>
+            <textarea id="serve-remarks" placeholder="Optional remarks…"></textarea>
           </div>
 
           <div class="field full">
@@ -584,12 +717,10 @@ const EMPLOYEES = JSON.parse(document.getElementById('employees-data').textConte
 const VIOLATIONS = JSON.parse(document.getElementById('violations-data').textContent).map((v,i)=>Object.assign({_id:'base-'+i}, v));
 
 let CASES = [];
-let ADDED_EMPLOYEES = [];
-let EMP_OVERRIDES = {}; // empId -> { status, dept, position }
+let EMPLOYEE_DIRECTORY = []; // rows from the Supabase "employees" table: new employees + edits to existing ones
 let ADDED_VIOLATIONS = [];
 let selectedEmp = null;
 let selectedViol = null;
-let selectedStatus = 'Served';
 
 const STATUS_OPTIONS = ['REGULAR','PROBATIONARY','ON LEAVE','AWOL','RESIGNED','TERMINATED','RETIRED'];
 
@@ -617,12 +748,27 @@ async function loadCases(){
       category: row.category,
       severity: row.severity,
       action: row.action,
+      classification: row.classification || classOf(row.category),
       incidentDate: row.incident_date,
       details: row.details || '',
       recordedBy: row.recorded_by || 'HR Admin',
       status: row.status,
       createdAt: row.created_at,
-      attachments: []
+      attachments: row.attachments || [],
+      noticeDate: row.notice_date || '',
+      responsePeriod: row.response_period || '',
+      serveMode: row.serve_mode || '',
+      serveRemarks: row.serve_remarks || '',
+      hearingHeld: row.hearing_held || '',
+      hearingVenue: row.hearing_venue || '',
+      hearingDatetime: row.hearing_datetime || '',
+      hearingProof: row.hearing_proof || null,
+      decision: row.decision || '',
+      verbalFollowupDate: row.verbal_followup_date || '',
+      writtenIssuedDate: row.written_issued_date || '',
+      writtenAttachment: row.written_attachment || null,
+      dateClosed: row.date_closed || '',
+      closingRemarks: row.closing_remarks || ''
     }));
 
   }catch(e){
@@ -645,11 +791,27 @@ async function saveCases(){
         violation: c.violation || '',
         severity: c.severity || '',
         action: c.action || '',
+        classification: c.classification || classOf(c.category),
         status: c.status || 'Served',
         details: c.details || '',
         recorded_by: c.recordedBy || 'HR Admin',
         created_at: c.createdAt || new Date().toISOString(),
-        case_id: c.caseId
+        case_id: c.caseId,
+        attachments: c.attachments || [],
+        notice_date: c.noticeDate || null,
+        response_period: c.responsePeriod || '',
+        serve_mode: c.serveMode || '',
+        serve_remarks: c.serveRemarks || '',
+        hearing_held: c.hearingHeld || '',
+        hearing_venue: c.hearingVenue || '',
+        hearing_datetime: c.hearingDatetime || null,
+        hearing_proof: c.hearingProof || null,
+        decision: c.decision || '',
+        verbal_followup_date: c.verbalFollowupDate || null,
+        written_issued_date: c.writtenIssuedDate || null,
+        written_attachment: c.writtenAttachment || null,
+        date_closed: c.dateClosed || null,
+        closing_remarks: c.closingRemarks || ''
       };
 
       let result;
@@ -705,40 +867,72 @@ async function ensureEmployeeSynced(emp){
   }
 }
 
-async function loadEmployeeChanges(){
+// New employees and edits to existing ones are upserted into Supabase's "employees" table
+// (ensureEmployeeSynced, below) and layered on top of the static masterlist here.
+async function loadEmployeeDirectory(){
   try{
-    const res = await window.storage.get('added-employees', false);
-    if(res && res.value){ ADDED_EMPLOYEES = JSON.parse(res.value); }
-  }catch(e){ ADDED_EMPLOYEES = []; }
-  try{
-    const res2 = await window.storage.get('employee-overrides', false);
-    if(res2 && res2.value){ EMP_OVERRIDES = JSON.parse(res2.value); }
-  }catch(e){ EMP_OVERRIDES = {}; }
-}
-async function saveAddedEmployees(){
-  try{ await window.storage.set('added-employees', JSON.stringify(ADDED_EMPLOYEES), false); }
-  catch(e){ console.error('save failed', e); }
-}
-async function saveEmpOverrides(){
-  try{ await window.storage.set('employee-overrides', JSON.stringify(EMP_OVERRIDES), false); }
-  catch(e){ console.error('save failed', e); }
+    const { data, error } = await supabaseClient.from('employees').select('*');
+    if(error){ console.error('Supabase loadEmployeeDirectory error:', error); EMPLOYEE_DIRECTORY = []; return; }
+    EMPLOYEE_DIRECTORY = (data || []).map(row => ({
+      id: row.id,
+      name: row.name,
+      dept: row.department,
+      position: row.position,
+      status: row.status,
+      hired: row.date_hired || ''
+    }));
+  }catch(e){
+    console.error('loadEmployeeDirectory failed:', e);
+    EMPLOYEE_DIRECTORY = [];
+  }
 }
 function getAllEmployees(){
-  const combined = EMPLOYEES.concat(ADDED_EMPLOYEES);
-  return combined.map(e=>{
-    const override = EMP_OVERRIDES[e.id];
-    return override ? Object.assign({}, e, override) : e;
-  });
+  const map = new Map();
+  EMPLOYEES.forEach(e=> map.set(String(e.id), e));
+  EMPLOYEE_DIRECTORY.forEach(e=> map.set(String(e.id), e));
+  return [...map.values()];
 }
+
+// Violations added through "Add Violation" are stored in Supabase's "custom_violations" table.
 async function loadAddedViolations(){
   try{
-    const res = await window.storage.get('added-violations', false);
-    if(res && res.value){ ADDED_VIOLATIONS = JSON.parse(res.value); }
-  }catch(e){ ADDED_VIOLATIONS = []; }
+    const { data, error } = await supabaseClient.from('custom_violations').select('*').order('created_at');
+    if(error){ console.error('Supabase loadAddedViolations error:', error); ADDED_VIOLATIONS = []; return; }
+    ADDED_VIOLATIONS = (data || []).map(row => ({
+      _id: row.id,
+      category: row.category,
+      name: row.name,
+      desc: row.description || '',
+      severity: row.severity,
+      action: row.action || ''
+    }));
+  }catch(e){
+    console.error('loadAddedViolations failed:', e);
+    ADDED_VIOLATIONS = [];
+  }
 }
-async function saveAddedViolations(){
-  try{ await window.storage.set('added-violations', JSON.stringify(ADDED_VIOLATIONS), false); }
-  catch(e){ console.error('save failed', e); }
+async function addCustomViolation(v){
+  try{
+    const { error } = await supabaseClient.from('custom_violations').insert({
+      id: v._id, category: v.category, name: v.name, description: v.desc || '', severity: v.severity, action: v.action || ''
+    });
+    if(error){ console.error('Supabase addCustomViolation error:', error); toast('Could not save violation to database.'); }
+  }catch(e){ console.error('addCustomViolation failed:', e); }
+}
+async function addCustomViolationsBulk(list){
+  if(list.length===0) return;
+  try{
+    const { error } = await supabaseClient.from('custom_violations').insert(
+      list.map(v=>({ id: v._id, category: v.category, name: v.name, description: v.desc || '', severity: v.severity, action: v.action || '' }))
+    );
+    if(error){ console.error('Supabase addCustomViolationsBulk error:', error); toast('Could not save all imported violations to database.'); }
+  }catch(e){ console.error('addCustomViolationsBulk failed:', e); }
+}
+async function deleteCustomViolation(id){
+  try{
+    const { error } = await supabaseClient.from('custom_violations').delete().eq('id', id);
+    if(error){ console.error('Supabase deleteCustomViolation error:', error); toast('Could not remove violation from database.'); }
+  }catch(e){ console.error('deleteCustomViolation failed:', e); }
 }
 function getAllViolations(){
   return VIOLATIONS.concat(ADDED_VIOLATIONS);
@@ -766,6 +960,18 @@ function statusClass(st){
   const s = st.toLowerCase();
   if(s.includes('closed')) return 'closed';
   if(s.includes('ongoing')) return 'ongoing';
+  return 'served';
+}
+// Classification (Class A/B/C) is encoded in each violation's category text,
+// e.g. "Integrity & Honesty (Class A)" -- pull it out instead of keeping a second list.
+function classOf(category){
+  const m = (category||'').match(/\(Class\s*([ABC])\)/i);
+  return m ? 'Class ' + m[1].toUpperCase() : '';
+}
+function classBadgeClass(cls){
+  if(cls==='Class A') return 'class-a';
+  if(cls==='Class B') return 'class-b';
+  if(cls==='Class C') return 'class-c';
   return 'served';
 }
 function fmtDate(d){
@@ -904,6 +1110,45 @@ function refreshFilterOptions(){
 
   // datalist for add-employee modal
   document.getElementById('dept-datalist').innerHTML = deptSet.map(d=>`<option value="${escapeHtml(d)}">`).join('');
+
+  refreshCaseFormDropdowns();
+}
+
+// ---------- File-a-Case dropdowns ----------
+function refreshCaseFormDropdowns(){
+  const empSel = document.getElementById('case-emp-select');
+  if(!empSel) return; // form not on the page yet
+  const curEmp = empSel.value;
+  const byDept = {};
+  getAllEmployees().forEach(e=>{
+    const d = e.dept || 'OTHER';
+    (byDept[d] = byDept[d] || []).push(e);
+  });
+  const deptNames = Object.keys(byDept).sort();
+  empSel.innerHTML = '<option value="">Select employee…</option>' + deptNames.map(d=>`
+    <optgroup label="${escapeHtml(titleCase(d))}">
+      ${byDept[d].sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`).join('')}
+    </optgroup>
+  `).join('');
+  if([...empSel.options].some(o=>o.value===curEmp)) empSel.value = curEmp;
+
+  const deptSel = document.getElementById('case-dept-select');
+  deptSel.innerHTML = '<option value="">—</option>' + deptNames.map(d=>`<option value="${escapeHtml(d)}">${escapeHtml(titleCase(d))}</option>`).join('');
+
+  const violSel = document.getElementById('case-viol-select');
+  const curViol = violSel.value;
+  const byCat = {};
+  getAllViolations().forEach(v=>{
+    const c = v.category || 'Other';
+    (byCat[c] = byCat[c] || []).push(v);
+  });
+  const catNames = Object.keys(byCat).sort();
+  violSel.innerHTML = '<option value="">Select offense…</option>' + catNames.map(c=>`
+    <optgroup label="${escapeHtml(c)}">
+      ${byCat[c].sort((a,b)=>a.name.localeCompare(b.name)).map(v=>`<option value="${escapeHtml(v._id)}">${escapeHtml(v.name)}</option>`).join('')}
+    </optgroup>
+  `).join('');
+  if([...violSel.options].some(o=>o.value===curViol)) violSel.value = curViol;
 }
 
 function violationCount(empId){
@@ -1025,107 +1270,30 @@ document.getElementById('viol-table-body').addEventListener('click', async (ev)=
   const btn = ev.target.closest('.row-action');
   if(!btn || !btn.dataset.violid) return;
   ADDED_VIOLATIONS = ADDED_VIOLATIONS.filter(v=>v._id !== btn.dataset.violid);
-  await saveAddedViolations();
+  await deleteCustomViolation(btn.dataset.violid);
   renderViolTable();
   toast('Violation removed.');
 });
 
-// ---------- Autocomplete: employee ----------
-const empSearchInput = document.getElementById('case-emp-search');
-const empAcList = document.getElementById('emp-ac-list');
-empSearchInput.addEventListener('input', ()=>{
-  const q = empSearchInput.value.trim().toLowerCase();
-  if(q.length===0){ empAcList.classList.remove('show'); empAcList.innerHTML=''; return; }
-  const matches = getAllEmployees().filter(e=>e.name.toLowerCase().includes(q)).slice(0,8);
-  if(matches.length===0){ empAcList.innerHTML = `<div class="ac-item" style="color:var(--gray-light);">No matching employee</div>`; }
-  else {
-    empAcList.innerHTML = matches.map(e=>`
-      <div class="ac-item" data-id="${escapeHtml(e.id)}">
-        <div class="n">${escapeHtml(e.name)}</div>
-        <div class="d">${escapeHtml(titleCase(e.dept))} · ${escapeHtml(titleCase(e.position))}</div>
-      </div>
-    `).join('');
-  }
-  empAcList.classList.add('show');
-});
-empAcList.addEventListener('click', (ev)=>{
-  const item = ev.target.closest('.ac-item');
-  if(!item || !item.dataset.id) return;
-  const emp = getAllEmployees().find(e=>String(e.id)===item.dataset.id);
-  if(emp){
-    selectedEmp = emp;
-    document.getElementById('emp-chip-text').textContent = `${emp.name} — ${titleCase(emp.dept)}`;
-    document.getElementById('emp-chip').classList.add('show');
-    empSearchInput.value='';
-    empSearchInput.style.display='none';
-    empAcList.classList.remove('show');
-  }
-});
-document.getElementById('emp-chip-clear').addEventListener('click', ()=>{
-  selectedEmp = null;
-  document.getElementById('emp-chip').classList.remove('show');
-  empSearchInput.style.display='block';
-  empSearchInput.value='';
-});
-document.addEventListener('click', (ev)=>{
-  if(!document.getElementById('emp-ac-wrap').contains(ev.target)) empAcList.classList.remove('show');
-  if(!document.getElementById('viol-ac-wrap').contains(ev.target)) violAcList.classList.remove('show');
+// ---------- Employee / Offense dropdowns ----------
+const empSelectEl = document.getElementById('case-emp-select');
+const violSelectEl = document.getElementById('case-viol-select');
+
+empSelectEl.addEventListener('change', ()=>{
+  const emp = getAllEmployees().find(e=>String(e.id)===empSelectEl.value);
+  selectedEmp = emp || null;
+  document.getElementById('case-dept-select').value = emp ? emp.dept : '';
 });
 
-// ---------- Autocomplete: violation ----------
-const violSearchInput = document.getElementById('case-viol-search');
-const violAcList = document.getElementById('viol-ac-list');
-violSearchInput.addEventListener('input', ()=>{
-  const q = violSearchInput.value.trim().toLowerCase();
-  if(q.length===0){ violAcList.classList.remove('show'); violAcList.innerHTML=''; return; }
-  const matches = getAllViolations().filter(v=>v.name.toLowerCase().includes(q) || v.category.toLowerCase().includes(q)).slice(0,8);
-  if(matches.length===0){ violAcList.innerHTML = `<div class="ac-item" style="color:var(--gray-light);">No matching violation</div>`; }
-  else {
-    violAcList.innerHTML = matches.map(v=>`
-      <div class="ac-item" data-vid="${escapeHtml(v._id)}">
-        <div class="n">${escapeHtml(v.name)}</div>
-        <div class="d">${escapeHtml(v.category)} · ${escapeHtml(v.severity)}</div>
-      </div>
-    `).join('');
-  }
-  violAcList.classList.add('show');
-});
-violAcList.addEventListener('click', (ev)=>{
-  const item = ev.target.closest('.ac-item');
-  if(!item || item.dataset.vid===undefined) return;
-  const v = getAllViolations().find(x=>x._id===item.dataset.vid);
-  if(v){
-    selectedViol = v;
-    document.getElementById('viol-chip-text').textContent = `${v.name} (${v.severity})`;
-    document.getElementById('viol-chip').classList.add('show');
-    violSearchInput.value='';
-    violSearchInput.style.display='none';
-    violAcList.classList.remove('show');
-    const note = document.getElementById('viol-sev-note');
-    note.textContent = `Recommended action: ${v.action}`;
-    note.classList.add('show');
-  }
-});
-document.getElementById('viol-chip-clear').addEventListener('click', ()=>{
-  selectedViol = null;
-  document.getElementById('viol-chip').classList.remove('show');
-  violSearchInput.style.display='block';
-  violSearchInput.value='';
-  document.getElementById('viol-sev-note').classList.remove('show');
+violSelectEl.addEventListener('change', ()=>{
+  const v = getAllViolations().find(x=>x._id===violSelectEl.value);
+  selectedViol = v || null;
+  document.getElementById('case-class-display').value = v ? classOf(v.category) : '';
 });
 
-// ---------- Status select ----------
-document.querySelectorAll('#case-status-select button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('#case-status-select button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedStatus = btn.dataset.status;
-  });
-});
-document.querySelector('#case-status-select button[data-status="Served"]').classList.add('active');
-
-// default date = today
-document.getElementById('case-date').value = new Date().toISOString().slice(0,10);
+function newCaseReference(){
+  return 'CASE-' + String(Date.now()).slice(-8);
+}
 
 // ---------- File attachment helpers ----------
 const ATTACH_ICON = `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48"/></svg>`;
@@ -1143,15 +1311,17 @@ function fileToBase64(file){
     reader.readAsDataURL(file);
   });
 }
-async function loadCaseAttachments(caseId){
-  try{
-    const res = await window.storage.get('case-attachments:'+caseId, false);
-    if(res && res.value) return JSON.parse(res.value);
-  }catch(e){}
-  return [];
+// Attachments live directly on the case row (disciplinary_cases.attachments, a jsonb array)
+// and are already in memory on CASES -- no separate load/save round-trip needed.
+function getCaseAttachments(caseId){
+  const c = CASES.find(x=>x.caseId===caseId);
+  return c ? (c.attachments || []) : [];
 }
-async function saveCaseAttachments(caseId, list){
-  try{ await window.storage.set('case-attachments:'+caseId, JSON.stringify(list), false); }catch(e){ toast('Could not save attachments (storage error).'); }
+async function setCaseAttachments(caseId, list){
+  const c = CASES.find(x=>x.caseId===caseId);
+  if(!c) return;
+  c.attachments = list;
+  await saveCases();
 }
 function downloadDataUrl(name, dataUrl){
   const a = document.createElement('a');
@@ -1188,17 +1358,19 @@ document.getElementById('case-attach-list').addEventListener('click', (ev)=>{
 
 // ---------- Submit case ----------
 function resetForm(){
-  selectedEmp = null; selectedViol = null; selectedStatus = 'Served';
-  document.getElementById('emp-chip').classList.remove('show');
-  document.getElementById('viol-chip').classList.remove('show');
-  document.getElementById('viol-sev-note').classList.remove('show');
-  empSearchInput.style.display='block'; empSearchInput.value='';
-  violSearchInput.style.display='block'; violSearchInput.value='';
+  selectedEmp = null; selectedViol = null;
+  empSelectEl.value = '';
+  violSelectEl.value = '';
+  document.getElementById('case-dept-select').value = '';
+  document.getElementById('case-class-display').value = '';
   document.getElementById('case-details').value='';
   document.getElementById('case-recorder').value='';
   document.getElementById('case-date').value = new Date().toISOString().slice(0,10);
-  document.querySelectorAll('#case-status-select button').forEach(b=>b.classList.remove('active'));
-  document.querySelector('#case-status-select button[data-status="Served"]').classList.add('active');
+  document.getElementById('case-ref-display').value = newCaseReference();
+  document.getElementById('notice-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('response-period').value = '24 hours';
+  document.getElementById('serve-mode').value = 'Email';
+  document.getElementById('serve-remarks').value = '';
   pendingCaseFiles = [];
   renderPendingAttachList();
 }
@@ -1206,9 +1378,13 @@ document.getElementById('case-clear-btn').addEventListener('click', resetForm);
 
 document.getElementById('case-submit-btn').addEventListener('click', async ()=>{
   if(!selectedEmp){ toast('Please select an employee.'); return; }
-  if(!selectedViol){ toast('Please select a violation.'); return; }
-  const caseId = 'CASE-' + String(Date.now()).slice(-8);
-  const filesToStore = pendingCaseFiles.slice();
+  if(!selectedViol){ toast('Please select an offense.'); return; }
+  const caseId = document.getElementById('case-ref-display').value || newCaseReference();
+  const fullAttach = [];
+  for(const f of pendingCaseFiles){
+    const dataUrl = await fileToBase64(f);
+    fullAttach.push({name:f.name, type:f.type, size:f.size, data:dataUrl});
+  }
   const rec = {
     caseId,
     empId: selectedEmp.id,
@@ -1218,27 +1394,25 @@ document.getElementById('case-submit-btn').addEventListener('click', async ()=>{
     category: selectedViol.category,
     severity: selectedViol.severity,
     action: selectedViol.action,
+    classification: classOf(selectedViol.category),
     incidentDate: document.getElementById('case-date').value,
     details: document.getElementById('case-details').value.trim(),
     recordedBy: document.getElementById('case-recorder').value.trim() || 'HR Admin',
-    status: selectedStatus,
+    status: 'Served',
     createdAt: new Date().toISOString(),
-    attachments: filesToStore.map(f=>({name:f.name, type:f.type, size:f.size}))
+    attachments: fullAttach,
+    noticeDate: document.getElementById('notice-date').value,
+    responsePeriod: document.getElementById('response-period').value,
+    serveMode: document.getElementById('serve-mode').value,
+    serveRemarks: document.getElementById('serve-remarks').value.trim()
   };
   CASES.unshift(rec);
   await ensureEmployeeSynced(selectedEmp);
   await saveCases();
-  if(filesToStore.length){
-    const fullAttach = [];
-    for(const f of filesToStore){
-      const dataUrl = await fileToBase64(f);
-      fullAttach.push({name:f.name, type:f.type, size:f.size, data:dataUrl});
-    }
-    await saveCaseAttachments(caseId, fullAttach);
-  }
   toast('Disciplinary record saved.');
   resetForm();
   renderCasesTable();
+  renderDashboard();
 });
 
 // ---------- Case records table ----------
@@ -1282,18 +1456,18 @@ function renderCasesTable(){
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Case</th><th>Employee</th><th>Violation</th><th>Severity</th><th>Incident Date</th><th>Status</th><th>Attachments</th><th></th></tr></thead>
+          <thead><tr><th>Case</th><th>Employee</th><th>Violation</th><th>Classification</th><th>Incident Date</th><th>Status</th><th>Attachments</th><th></th></tr></thead>
           <tbody>
             ${rows.map(c=>`
               <tr>
                 <td>${escapeHtml(c.caseId)}<div class="emp-id">by ${escapeHtml(c.recordedBy)}</div></td>
                 <td><div class="emp-name">${escapeHtml(c.empName)}</div><div class="emp-id">${escapeHtml(titleCase(c.dept))}</div></td>
                 <td>${escapeHtml(c.violation)}${c.details?`<div class="emp-id" style="max-width:260px; white-space:normal;">${escapeHtml(c.details)}</div>`:''}</td>
-                <td><span class="badge ${sevClass(c.severity)}">${escapeHtml(c.severity||'—')}</span></td>
+                <td><span class="badge ${classBadgeClass(c.classification)}">${escapeHtml(c.classification||'—')}</span></td>
                 <td>${fmtDate(c.incidentDate)}</td>
                 <td><span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span></td>
                 <td><span class="attach-badge" data-caseid="${escapeHtml(c.caseId)}">${ATTACH_ICON.replace('class="ic"','')} ${(c.attachments||[]).length ? (c.attachments.length+' file'+(c.attachments.length===1?'':'s')) : 'Add file'}</span></td>
-                <td><button class="row-action" data-caseid="${escapeHtml(c.caseId)}">Change Status</button></td>
+                <td><button class="row-action" data-caseid="${escapeHtml(c.caseId)}">${c.status==='Served' ? 'Move to Ongoing' : c.status==='Ongoing' ? 'Close Case' : 'View'}</button></td>
               </tr>
             `).join('')}
           </tbody>
@@ -1343,7 +1517,115 @@ function renderDashboard(){
       </div>
     `).join('');
   }
+
+  // classification summary cards
+  const totalCases = CASES.length;
+  ['A','B','C'].forEach(letter=>{
+    const cls = 'Class ' + letter;
+    const n = CASES.filter(c=>c.classification===cls).length;
+    const pct = totalCases ? ((n/totalCases)*100).toFixed(1) : '0.0';
+    document.getElementById(`stat-class-${letter.toLowerCase()}`).textContent = n;
+    document.getElementById(`stat-class-${letter.toLowerCase()}-pct`).textContent = `${pct}% of all cases`;
+  });
+
+  // violations by department (distinct employees with at least one case)
+  const deptEmpSets = {};
+  CASES.forEach(c=>{
+    const d = c.dept || 'OTHER';
+    (deptEmpSets[d] = deptEmpSets[d] || new Set()).add(String(c.empId));
+  });
+  const deptViolWrap = document.getElementById('dept-violations');
+  const deptViolEntries = Object.entries(deptEmpSets).map(([d,set])=>[d, set.size]).sort((a,b)=>b[1]-a[1]);
+  if(deptViolEntries.length===0){
+    deptViolWrap.innerHTML = `<div class="empty-note">No violations recorded yet.</div>`;
+  } else {
+    const deptMax = Math.max(...deptViolEntries.map(([,c])=>c));
+    deptViolWrap.innerHTML = deptViolEntries.map(([d,c])=>`
+      <div class="dept-row">
+        <div class="name">${escapeHtml(titleCase(d))}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(c/deptMax*100).toFixed(0)}%"></div></div>
+        <div class="count clickable" data-dept="${escapeHtml(d)}">${c}</div>
+      </div>
+    `).join('');
+  }
 }
+
+// ---------- Dashboard drill-down (case list modal) ----------
+const caseListModalOverlay = document.getElementById('case-list-modal-overlay');
+function openCaseListModal(title, cases){
+  document.getElementById('case-list-modal-title').textContent = title;
+  const body = document.getElementById('case-list-modal-body');
+  if(cases.length===0){
+    body.innerHTML = `<div class="empty-note">No matching cases.</div>`;
+  } else {
+    body.innerHTML = cases.map(c=>`
+      <div class="mini-case case-list-row" data-caseid="${escapeHtml(c.caseId)}" style="cursor:pointer;">
+        <div class="top">
+          <span class="who">${escapeHtml(c.empName)}</span>
+          <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
+        </div>
+        <div class="what">${escapeHtml(c.violation)} <span class="badge ${classBadgeClass(c.classification)}" style="margin-left:4px;">${escapeHtml(c.classification||'—')}</span> · ${fmtDate(c.incidentDate)}</div>
+      </div>
+    `).join('');
+  }
+  caseListModalOverlay.classList.add('show');
+}
+function closeCaseListModal(){ caseListModalOverlay.classList.remove('show'); }
+document.getElementById('case-list-modal-close').addEventListener('click', closeCaseListModal);
+caseListModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===caseListModalOverlay) closeCaseListModal(); });
+document.getElementById('case-list-modal-body').addEventListener('click', (ev)=>{
+  const row = ev.target.closest('.case-list-row');
+  if(!row) return;
+  closeCaseListModal();
+  openCaseStatusModal(row.dataset.caseid);
+});
+
+['a','b','c'].forEach(letter=>{
+  document.getElementById(`class-card-${letter}`).addEventListener('click', (ev)=>{
+    const cls = ev.currentTarget.dataset.class;
+    openCaseListModal(`${cls} Offenses`, CASES.filter(c=>c.classification===cls));
+  });
+});
+document.getElementById('dept-violations').addEventListener('click', (ev)=>{
+  const el = ev.target.closest('.count.clickable');
+  if(!el) return;
+  const dept = el.dataset.dept;
+  openCaseListModal(`Violations — ${titleCase(dept)}`, CASES.filter(c=>c.dept===dept));
+});
+
+// ---------- Dashboard violation search ----------
+const dashSearchInput = document.getElementById('dash-viol-search');
+const dashSearchResults = document.getElementById('dash-search-results');
+dashSearchInput.addEventListener('input', ()=>{
+  const q = dashSearchInput.value.trim().toLowerCase();
+  if(q.length===0){ dashSearchResults.classList.remove('show'); dashSearchResults.innerHTML=''; return; }
+  const matches = CASES.filter(c=>
+    c.empName.toLowerCase().includes(q) ||
+    (c.caseId||'').toLowerCase().includes(q) ||
+    (c.violation||'').toLowerCase().includes(q)
+  ).slice(0,10);
+  dashSearchResults.innerHTML = matches.length===0
+    ? `<div class="sr-empty">No matching violations.</div>`
+    : matches.map(c=>`
+        <div class="sr-item" data-caseid="${escapeHtml(c.caseId)}">
+          <div class="sr-top">
+            <span class="sr-name">${escapeHtml(c.empName)} — ${escapeHtml(c.violation)}</span>
+            <span class="badge ${classBadgeClass(c.classification)}">${escapeHtml(c.classification||'—')}</span>
+          </div>
+          <div class="sr-sub">${escapeHtml(c.caseId)} · ${fmtDate(c.incidentDate)} · <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span></div>
+        </div>
+      `).join('');
+  dashSearchResults.classList.add('show');
+});
+dashSearchResults.addEventListener('click', (ev)=>{
+  const item = ev.target.closest('.sr-item');
+  if(!item) return;
+  dashSearchResults.classList.remove('show');
+  openCaseStatusModal(item.dataset.caseid);
+});
+document.addEventListener('click', (ev)=>{
+  if(!document.getElementById('dash-search-wrap').contains(ev.target)) dashSearchResults.classList.remove('show');
+});
 
 // ---------- Add Employee modal ----------
 const empModalOverlay = document.getElementById('emp-modal-overlay');
@@ -1385,8 +1667,8 @@ document.getElementById('emp-modal-save').addEventListener('click', async ()=>{
     hired: document.getElementById('modal-emp-hired').value,
     status: modalStatusSel.value
   };
-  ADDED_EMPLOYEES.push(newEmp);
-  await saveAddedEmployees();
+  await ensureEmployeeSynced(newEmp);
+  EMPLOYEE_DIRECTORY.push(newEmp);
   closeAddEmployeeModal();
   refreshFilterOptions();
   renderEmpTable();
@@ -1422,12 +1704,17 @@ document.getElementById('status-modal-save').addEventListener('click', async ()=
   const dept = modalEditDept.value.trim();
   const position = modalEditPosition.value.trim();
   if(!dept){ toast('Please enter a department.'); return; }
-  EMP_OVERRIDES[statusModalTargetId] = {
+  const existing = getAllEmployees().find(e=>String(e.id)===String(statusModalTargetId));
+  const updated = {
+    id: statusModalTargetId,
+    name: existing ? existing.name : '',
+    dept, position,
     status: modalStatusSelect2.value,
-    dept: dept,
-    position: position
+    hired: existing ? existing.hired : ''
   };
-  await saveEmpOverrides();
+  await ensureEmployeeSynced(updated);
+  const idx = EMPLOYEE_DIRECTORY.findIndex(e=>String(e.id)===String(statusModalTargetId));
+  if(idx>=0) EMPLOYEE_DIRECTORY[idx] = updated; else EMPLOYEE_DIRECTORY.push(updated);
   closeStatusModal();
   refreshFilterOptions();
   renderEmpTable();
@@ -1435,17 +1722,90 @@ document.getElementById('status-modal-save').addEventListener('click', async ()=
   toast('Employee details updated.');
 });
 
-// ---------- Change Case Status modal ----------
+// ---------- Update Case modal (stage-aware: Served -> Ongoing -> Closed) ----------
 const caseStatusModalOverlay = document.getElementById('case-status-modal-overlay');
-const modalCaseStatusSelect = document.getElementById('modal-case-status-select');
 let caseStatusModalTargetId = null;
+let pendingHearingProofFile = null;
+let pendingWrittenAttachFile = null;
+
+function toggleHearingSubFields(){
+  document.getElementById('hearing-sub-fields').classList.toggle('show', document.getElementById('hearing-held').value === 'Yes');
+}
+document.getElementById('hearing-held').addEventListener('change', toggleHearingSubFields);
+
+function toggleDecisionSubFields(){
+  const d = document.getElementById('case-decision').value;
+  document.getElementById('decision-verbal-fields').classList.toggle('show', d === 'Verbal warning');
+  document.getElementById('decision-written-fields').classList.toggle('show', d === 'Written warning');
+}
+document.getElementById('case-decision').addEventListener('change', toggleDecisionSubFields);
+
+document.getElementById('hearing-proof-input').addEventListener('change', (ev)=>{
+  const f = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if(!f) return;
+  pendingHearingProofFile = f;
+  document.getElementById('hearing-proof-list').innerHTML =
+    `<div class="attach-row">${ATTACH_ICON}<span class="nm">${escapeHtml(f.name)}</span><span class="sz">${formatFileSize(f.size)}</span></div>`;
+});
+document.getElementById('written-attach-input').addEventListener('change', (ev)=>{
+  const f = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if(!f) return;
+  pendingWrittenAttachFile = f;
+  document.getElementById('written-attach-list').innerHTML =
+    `<div class="attach-row">${ATTACH_ICON}<span class="nm">${escapeHtml(f.name)}</span><span class="sz">${formatFileSize(f.size)}</span></div>`;
+});
 
 function openCaseStatusModal(caseId){
   const c = CASES.find(x=>x.caseId===caseId);
   if(!c) return;
   caseStatusModalTargetId = caseId;
-  document.getElementById('case-status-modal-info').textContent = `${c.empName} — ${c.violation}`;
-  modalCaseStatusSelect.value = c.status;
+  pendingHearingProofFile = null;
+  pendingWrittenAttachFile = null;
+  document.getElementById('case-status-modal-info').innerHTML = `${escapeHtml(c.empName)} — ${escapeHtml(c.violation)} <span class="badge ${classBadgeClass(c.classification)}" style="margin-left:6px;">${escapeHtml(c.classification||'—')}</span>`;
+
+  const ongoingFields = document.getElementById('stage-ongoing-fields');
+  const closedFields = document.getElementById('stage-closed-fields');
+  const summary = document.getElementById('stage-summary');
+  const actions = document.getElementById('case-status-modal-actions');
+  const heading = document.getElementById('case-status-modal-heading');
+
+  ongoingFields.style.display = 'none';
+  closedFields.style.display = 'none';
+  summary.style.display = 'none';
+  actions.style.display = 'flex';
+
+  if(c.status === 'Served'){
+    heading.textContent = 'Move to Ongoing';
+    ongoingFields.style.display = 'block';
+    document.getElementById('hearing-held').value = 'No';
+    document.getElementById('hearing-venue').value = 'Zoom';
+    document.getElementById('hearing-datetime').value = '';
+    document.getElementById('hearing-proof-list').innerHTML = '';
+    toggleHearingSubFields();
+  } else if(c.status === 'Ongoing'){
+    heading.textContent = 'Close Case';
+    closedFields.style.display = 'block';
+    document.getElementById('case-decision').value = 'Verbal warning';
+    document.getElementById('verbal-followup-date').value = '';
+    document.getElementById('written-issued-date').value = '';
+    document.getElementById('written-attach-list').innerHTML = '';
+    document.getElementById('date-closed').value = new Date().toISOString().slice(0,10);
+    document.getElementById('closing-remarks').value = '';
+    toggleDecisionSubFields();
+  } else {
+    heading.textContent = 'Case Closed';
+    actions.style.display = 'none';
+    summary.style.display = 'block';
+    summary.innerHTML = `
+      <div class="field"><label>Decision</label><div>${escapeHtml(c.decision||'—')}</div></div>
+      ${c.decision==='Verbal warning' ? `<div class="field"><label>Talked To / Followed Up</label><div>${fmtDate(c.verbalFollowupDate)}</div></div>` : ''}
+      ${c.decision==='Written warning' ? `<div class="field"><label>Date Issued</label><div>${fmtDate(c.writtenIssuedDate)}</div></div>` : ''}
+      <div class="field"><label>Date Closed</label><div>${fmtDate(c.dateClosed)}</div></div>
+      ${c.closingRemarks ? `<div class="field"><label>Closing Remarks</label><div>${escapeHtml(c.closingRemarks)}</div></div>` : ''}
+    `;
+  }
   caseStatusModalOverlay.classList.add('show');
 }
 function closeCaseStatusModal(){ caseStatusModalOverlay.classList.remove('show'); caseStatusModalTargetId=null; }
@@ -1456,10 +1816,9 @@ caseStatusModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===caseStat
 // ---------- Case attachments modal ----------
 const caseAttachModalOverlay = document.getElementById('case-attach-modal-overlay');
 let caseAttachModalTargetId = null;
-async function renderCaseAttachModalList(){
+function renderCaseAttachModalList(){
   const listEl = document.getElementById('case-attach-modal-list');
-  listEl.innerHTML = `<div class="attach-empty">Loading…</div>`;
-  const files = await loadCaseAttachments(caseAttachModalTargetId);
+  const files = getCaseAttachments(caseAttachModalTargetId);
   if(files.length===0){
     listEl.innerHTML = `<div class="attach-empty">No documents attached to this case yet.</div>`;
   } else {
@@ -1474,11 +1833,11 @@ async function renderCaseAttachModalList(){
     `).join('');
   }
 }
-async function openCaseAttachModal(caseId){
+function openCaseAttachModal(caseId){
   caseAttachModalTargetId = caseId;
   document.getElementById('case-attach-modal-title').textContent = `Attachments — ${caseId}`;
   caseAttachModalOverlay.classList.add('show');
-  await renderCaseAttachModalList();
+  renderCaseAttachModalList();
 }
 function closeCaseAttachModal(){ caseAttachModalOverlay.classList.remove('show'); caseAttachModalTargetId = null; }
 document.getElementById('case-attach-modal-close').addEventListener('click', closeCaseAttachModal);
@@ -1489,16 +1848,13 @@ document.getElementById('case-attach-modal-input').addEventListener('change', as
   ev.target.value = '';
   if(newFiles.length===0 || !caseAttachModalTargetId) return;
   const targetId = caseAttachModalTargetId;
-  const existing = await loadCaseAttachments(targetId);
+  const existing = getCaseAttachments(targetId).slice();
   for(const f of newFiles){
     const dataUrl = await fileToBase64(f);
     existing.push({name:f.name, type:f.type, size:f.size, data:dataUrl});
   }
-  await saveCaseAttachments(targetId, existing);
-  const rec = CASES.find(c=>c.caseId===targetId);
-  if(rec) rec.attachments = existing.map(f=>({name:f.name, type:f.type, size:f.size}));
-  await saveCases();
-  await renderCaseAttachModalList();
+  await setCaseAttachments(targetId, existing);
+  renderCaseAttachModalList();
   renderCasesTable();
   toast('Attachment added.');
 });
@@ -1507,13 +1863,10 @@ document.getElementById('case-attach-modal-list').addEventListener('click', asyn
   const rm = ev.target.closest('.rm');
   if(!rm || !caseAttachModalTargetId) return;
   const targetId = caseAttachModalTargetId;
-  const existing = await loadCaseAttachments(targetId);
+  const existing = getCaseAttachments(targetId).slice();
   existing.splice(Number(rm.dataset.idx), 1);
-  await saveCaseAttachments(targetId, existing);
-  const rec = CASES.find(c=>c.caseId===targetId);
-  if(rec) rec.attachments = existing.map(f=>({name:f.name, type:f.type, size:f.size}));
-  await saveCases();
-  await renderCaseAttachModalList();
+  await setCaseAttachments(targetId, existing);
+  renderCaseAttachModalList();
   renderCasesTable();
   toast('Attachment removed.');
 });
@@ -1521,14 +1874,46 @@ document.getElementById('case-attach-modal-list').addEventListener('click', asyn
 document.getElementById('case-status-modal-save').addEventListener('click', async ()=>{
   if(!caseStatusModalTargetId) return;
   const c = CASES.find(x=>x.caseId===caseStatusModalTargetId);
-  if(c){
-    c.status = modalCaseStatusSelect.value;
-    await saveCases();
+  if(!c) return;
+
+  if(c.status === 'Served'){
+    c.hearingHeld = document.getElementById('hearing-held').value;
+    if(c.hearingHeld === 'Yes'){
+      c.hearingVenue = document.getElementById('hearing-venue').value;
+      c.hearingDatetime = document.getElementById('hearing-datetime').value;
+      if(pendingHearingProofFile){
+        const dataUrl = await fileToBase64(pendingHearingProofFile);
+        c.hearingProof = { name: pendingHearingProofFile.name, type: pendingHearingProofFile.type, size: pendingHearingProofFile.size, data: dataUrl };
+      }
+    } else {
+      c.hearingVenue = ''; c.hearingDatetime = ''; c.hearingProof = null;
+    }
+    c.status = 'Ongoing';
+  } else if(c.status === 'Ongoing'){
+    c.decision = document.getElementById('case-decision').value;
+    c.verbalFollowupDate = c.decision === 'Verbal warning' ? document.getElementById('verbal-followup-date').value : '';
+    if(c.decision === 'Written warning'){
+      c.writtenIssuedDate = document.getElementById('written-issued-date').value;
+      if(pendingWrittenAttachFile){
+        const dataUrl = await fileToBase64(pendingWrittenAttachFile);
+        c.writtenAttachment = { name: pendingWrittenAttachFile.name, type: pendingWrittenAttachFile.type, size: pendingWrittenAttachFile.size, data: dataUrl };
+      }
+    } else {
+      c.writtenIssuedDate = ''; c.writtenAttachment = null;
+    }
+    c.dateClosed = document.getElementById('date-closed').value;
+    c.closingRemarks = document.getElementById('closing-remarks').value.trim();
+    c.status = 'Closed';
+  } else {
     closeCaseStatusModal();
-    renderCasesTable();
-    renderDashboard();
-    toast('Case status updated.');
+    return;
   }
+
+  await saveCases();
+  closeCaseStatusModal();
+  renderCasesTable();
+  renderDashboard();
+  toast('Case updated.');
 });
 
 // ---------- Add Violation modal ----------
@@ -1561,7 +1946,7 @@ document.getElementById('viol-modal-save').addEventListener('click', async ()=>{
     action: document.getElementById('modal-viol-action').value.trim()
   };
   ADDED_VIOLATIONS.push(newViol);
-  await saveAddedViolations();
+  await addCustomViolation(newViol);
   closeAddViolationModal();
   renderViolTable();
   toast(`"${name}" added to the violation reference.`);
@@ -1598,12 +1983,12 @@ violFileInput.addEventListener('change', (ev)=>{
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
-      let imported = 0;
-      rows.forEach(r=>{
+      const newlyImported = [];
+      rows.forEach((r,i)=>{
         const name = findCol(r, ['violation','name','offense']);
         if(!name) return;
         const newViol = {
-          _id: 'added-' + Date.now() + '-' + Math.floor(Math.random()*100000),
+          _id: 'added-' + Date.now() + '-' + i + '-' + Math.floor(Math.random()*100000),
           category: findCol(r, ['category','type']) || 'General',
           name: String(name).trim(),
           desc: findCol(r, ['description','desc','details']),
@@ -1611,14 +1996,14 @@ violFileInput.addEventListener('change', (ev)=>{
           action: findCol(r, ['action','recommend','penalty','sanction'])
         };
         ADDED_VIOLATIONS.push(newViol);
-        imported++;
+        newlyImported.push(newViol);
       });
-      if(imported===0){
+      if(newlyImported.length===0){
         toast('No violations found. Check that your file has a "Violation" column.');
       } else {
-        await saveAddedViolations();
+        await addCustomViolationsBulk(newlyImported);
         renderViolTable();
-        toast(`Imported ${imported} violation${imported===1?'':'s'} from Excel.`);
+        toast(`Imported ${newlyImported.length} violation${newlyImported.length===1?'':'s'} from Excel.`);
       }
     } catch(err){
       console.error(err);
@@ -1641,12 +2026,12 @@ function openEmpViolationsModal(empId){
     listEl.innerHTML = `<div class="empty-note">No violations on file for this employee.</div>`;
   } else {
     listEl.innerHTML = records.map(c=>`
-      <div class="mini-case">
+      <div class="mini-case case-list-row" data-caseid="${escapeHtml(c.caseId)}" style="cursor:pointer;">
         <div class="top">
           <span class="who">${escapeHtml(c.violation)}</span>
           <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
         </div>
-        <div class="what">${fmtDate(c.incidentDate)} · <span class="badge ${sevClass(c.severity)}" style="margin-left:2px;">${escapeHtml(c.severity||'—')}</span></div>
+        <div class="what">${fmtDate(c.incidentDate)} · <span class="badge ${classBadgeClass(c.classification)}" style="margin-left:2px;">${escapeHtml(c.classification||'—')}</span>${c.status==='Closed' ? ` · Decision: ${escapeHtml(c.decision||'—')}` : ''}</div>
         ${c.details ? `<div class="what" style="margin-top:5px;">${escapeHtml(c.details)}</div>` : ''}
         <div class="what" style="margin-top:6px;"><span class="attach-badge" data-caseid="${escapeHtml(c.caseId)}">${ATTACH_ICON.replace('class="ic"','')} ${(c.attachments||[]).length ? (c.attachments.length+' file'+(c.attachments.length===1?'':'s')) : 'Add file'}</span></div>
       </div>
@@ -1659,8 +2044,11 @@ document.getElementById('emp-viol-modal-close').addEventListener('click', closeE
 empViolModalOverlay.addEventListener('click', (ev)=>{ if(ev.target===empViolModalOverlay) closeEmpViolationsModal(); });
 document.getElementById('emp-viol-modal-list').addEventListener('click', (ev)=>{
   const attachBtn = ev.target.closest('.attach-badge');
-  if(!attachBtn) return;
-  openCaseAttachModal(attachBtn.dataset.caseid);
+  if(attachBtn){ openCaseAttachModal(attachBtn.dataset.caseid); return; }
+  const row = ev.target.closest('.case-list-row');
+  if(!row) return;
+  closeEmpViolationsModal();
+  openCaseStatusModal(row.dataset.caseid);
 });
 
 // ---------- Violation Analytics ----------
@@ -1931,10 +2319,8 @@ async function exportAllDataToExcel(){
     for(const c of sortedCases){
       const files = c.attachments || [];
       if(files.length===0) continue;
-      const full = await loadCaseAttachments(c.caseId);
-      if(full.length===0) continue;
       const folder = attachRoot.folder(`${safeFileName(c.empName)}_${c.caseId}`);
-      full.forEach(f=>{
+      files.forEach(f=>{
         try{
           folder.file(safeFileName(f.name), dataUrlToUint8Array(f.data));
         }catch(e){ /* skip file if corrupted */ }
@@ -2182,13 +2568,14 @@ assistantInputEl.addEventListener('input', ()=>{
 // ---------- init ----------
 (async function init(){
   await loadCases();
-  await loadEmployeeChanges();
+  await loadEmployeeDirectory();
   await loadAddedViolations();
   refreshFilterOptions();
   renderEmpTable();
   renderViolTable();
   renderDashboard();
   renderCasesTable();
+  resetForm();
 })();
 </script>
   
