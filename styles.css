@@ -333,6 +333,7 @@
     background:transparent; color:var(--ink); border:1px solid var(--line); box-shadow:none;
   }
   .btn.ghost:hover{ border-color:var(--brand-red); background:var(--brand-red-pale); }
+  .btn.btn-compact{ padding:6px 12px; font-size:var(--text-xs); border-radius:8px; }
   .form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);}
 
   .toast{

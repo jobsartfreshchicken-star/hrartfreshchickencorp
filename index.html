@@ -65,12 +65,11 @@
         </button>
         <div>
           <h2 id="topbar-title">Dashboard</h2>
-          <div class="sub" id="topbar-sub">Overview of personnel and active disciplinary matters</div>
+          <div class="sub" id="topbar-sub">—</div>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
-        <button class="btn ghost" id="export-all-btn" title="Download all system data as an organized Excel workbook (bundled with attachments as a ZIP when documents are attached)">⇩ Download All Data</button>
-        <div class="date-pill" id="today-pill">—</div>
+        <button class="btn ghost btn-compact" id="export-all-btn" title="Download all system data as an organized Excel workbook (bundled with attachments as a ZIP when documents are attached)">⇩ Download All Data</button>
       </div>
     </div>
 
@@ -784,22 +783,7 @@ function toast(msg){
 }
 
 // ---------- navigation ----------
-// Employee Relations sub-views live behind the module sub-nav tab row.
-const subviewTitles = {
-  dashboard:['Dashboard','Overview of personnel and active disciplinary matters'],
-  employees:['Employees','Complete masterlist of active personnel'],
-  file:['File a Case','Record a new violation and set notice status'],
-  cases:['Case Records','All disciplinary records on file'],
-  analytics:['Violation Analytics','Conduct trends across the organization, updated in real time'],
-  violations:['Violation Reference','Standard violation categories and recommended actions']
-};
 // Other sidebar modules map straight to a single view.
-const moduleTitles = {
-  recruitment:['Recruitment','Job openings, applicants, and the hiring pipeline'],
-  'comp-benefits':['Compensation & Benefits','Payroll, benefits, and compensation records'],
-  training:['Training','Employee learning and development programs'],
-  assistant:['AI Assistant','Free built-in lookup for employees, cases & policies — add an Anthropic key for full conversation with Claude']
-};
 const moduleViewIds = {
   recruitment:'view-recruitment',
   'comp-benefits':'view-comp-benefits',
@@ -828,9 +812,12 @@ function showView(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function setTopbarText(title, sub){
+function todayString(){
+  return new Date().toLocaleDateString('en-US',{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+}
+function setTopbarText(title){
   document.getElementById('topbar-title').textContent = title;
-  document.getElementById('topbar-sub').textContent = sub;
+  document.getElementById('topbar-sub').textContent = todayString();
 }
 
 let currentUserName = '';
@@ -855,14 +842,14 @@ function greetingTitle(){
 }
 function applyUserSession(session){
   currentUserName = deriveUserName(session && session.user);
-  document.getElementById('topbar-title').textContent = greetingTitle();
+  setTopbarText(greetingTitle());
 }
 
 function activateSubview(view){
   currentSubview = view;
   document.querySelectorAll('.subnav-tab').forEach(t=>t.classList.toggle('active', t.dataset.view===view));
   showView('view-'+view);
-  setTopbarText(greetingTitle(), subviewTitles[view][1]);
+  setTopbarText(greetingTitle());
   if(view==='dashboard') renderDashboard();
   if(view==='cases') renderCasesTable();
   if(view==='analytics') renderAnalytics();
@@ -876,7 +863,7 @@ function activateModule(mod){
   } else {
     moduleSubnav.classList.remove('show');
     showView(moduleViewIds[mod]);
-    setTopbarText(greetingTitle(), moduleTitles[mod][1]);
+    setTopbarText(greetingTitle());
   }
   closeSidebar();
 }
@@ -887,8 +874,6 @@ document.querySelectorAll('.module-nav-item').forEach(item=>{
 document.querySelectorAll('.subnav-tab').forEach(tab=>{
   tab.addEventListener('click', ()=> activateSubview(tab.dataset.view));
 });
-
-document.getElementById('today-pill').textContent = new Date().toLocaleDateString('en-US',{weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
 // ---------- Employees view ----------
 const deptFilterSel = document.getElementById('emp-dept-filter');
