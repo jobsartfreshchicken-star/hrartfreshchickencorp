@@ -131,7 +131,7 @@
 
   /* ===== Module sub-nav (tab row for the active module's own pages) ===== */
   .module-subnav{
-    display:none; align-items:center; gap:20px;
+    display:none; align-items:center; justify-content:center; gap:20px;
     padding:0 24px; background:var(--paper); border-bottom:1px solid var(--line);
     overflow-x:auto;
   }
