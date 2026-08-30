@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260830b">
+<link rel="stylesheet" href="styles.css?v=20260830c">
 </head>
 <body>
 <div class="app">
@@ -109,30 +109,57 @@
 
     <!-- DASHBOARD -->
     <section class="view active" id="view-dashboard">
-      <div class="panel" style="margin-bottom:18px;">
-        <h3 style="border-bottom:none; padding-bottom:0; margin-bottom:10px;">Search Violations</h3>
-        <div class="field full autocomplete" id="dash-search-wrap" style="margin-bottom:0;">
-          <input type="text" id="dash-viol-search" placeholder="Search by employee name, reference number, or offense…" autocomplete="off">
+      <div class="dash-search-row">
+        <div class="field full autocomplete search-with-icon" id="dash-search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="dash-viol-search" placeholder="Search violations by employee name, reference number, or offense…" autocomplete="off">
           <div class="search-results" id="dash-search-results"></div>
+        </div>
+        <div class="filters-dropdown" id="dash-filters-dropdown">
+          <button class="btn ghost filters-btn" id="dash-filters-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7.5 12h9M11 18h2"/></svg>
+            Filters
+          </button>
+          <div class="filters-menu" id="dash-filters-menu">
+            <div class="filters-menu-label">Case status</div>
+            <label class="filter-check"><input type="checkbox" value="Served" checked> Served</label>
+            <label class="filter-check"><input type="checkbox" value="Ongoing" checked> Ongoing</label>
+            <label class="filter-check"><input type="checkbox" value="Closed" checked> Closed</label>
+          </div>
         </div>
       </div>
 
       <div class="stat-grid">
-        <div class="stat-card"><div class="label">Total Employees</div><div class="num" id="stat-total-emp">0</div><div class="foot">Across all departments</div></div>
-        <div class="stat-card"><div class="label">Active Cases</div><div class="num" id="stat-active-cases">0</div><div class="foot">Served or ongoing</div></div>
-        <div class="stat-card"><div class="label">Employees With Violations</div><div class="num" id="stat-emp-viol">0</div><div class="foot">Unique individuals on record</div></div>
-        <div class="stat-card"><div class="label">Resolved Cases</div><div class="num" id="stat-resolved">0</div><div class="foot">Marked closed</div></div>
+        <div class="stat-card icon-card">
+          <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/><circle cx="17.5" cy="7.5" r="2.5"/><path d="M21.5 20c0-2.9-1.9-5.2-4.5-5.9"/></svg></div>
+          <div class="stat-body"><div class="label">Total Employees</div><div class="num" id="stat-total-emp">0</div><div class="foot">Across all departments</div></div>
+        </div>
+        <div class="stat-card icon-card">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8" width="17" height="11" rx="2"/><path d="M8.5 8V6a2 2 0 012-2h3a2 2 0 012 2v2"/><path d="M3.5 13h17"/></svg></div>
+          <div class="stat-body"><div class="label">Active Cases</div><div class="num" id="stat-active-cases">0</div><div class="foot">Served or ongoing</div></div>
+        </div>
+        <div class="stat-card icon-card">
+          <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.6-3 8.3-7 9.5-4-1.2-7-4.9-7-9.5V6l7-3z"/><path d="M12 8.5v4.5M12 16h.01"/></svg></div>
+          <div class="stat-body"><div class="label">Employees With Violations</div><div class="num" id="stat-emp-viol">0</div><div class="foot">Unique individuals on record</div></div>
+        </div>
+        <div class="stat-card icon-card">
+          <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.3l2.4 2.4 4.6-5"/></svg></div>
+          <div class="stat-body"><div class="label">Resolved Cases</div><div class="num" id="stat-resolved">0</div><div class="foot">Marked closed</div></div>
+        </div>
       </div>
 
       <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-        <div class="stat-card clickable" id="class-card-a" data-class="Class A">
-          <div class="label">Class A Offenses</div><div class="num" id="stat-class-a">0</div><div class="foot" id="stat-class-a-pct">0% of all cases</div>
+        <div class="stat-card icon-card offense class-a clickable" id="class-card-a" data-class="Class A">
+          <div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 15.5l4-4M9 8l7 7M14.5 3.5l6 6-3 3-6-6z"/><path d="M3.5 20.5l4-4"/></svg></div>
+          <div class="stat-body"><div class="label">Class A Offenses</div><div class="num" id="stat-class-a">0</div><div class="foot" id="stat-class-a-pct">0% of all cases</div></div>
         </div>
-        <div class="stat-card clickable" id="class-card-b" data-class="Class B">
-          <div class="label">Class B Offenses</div><div class="num" id="stat-class-b">0</div><div class="foot" id="stat-class-b-pct">0% of all cases</div>
+        <div class="stat-card icon-card offense class-b clickable" id="class-card-b" data-class="Class B">
+          <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 15.5l4-4M9 8l7 7M14.5 3.5l6 6-3 3-6-6z"/><path d="M3.5 20.5l4-4"/></svg></div>
+          <div class="stat-body"><div class="label">Class B Offenses</div><div class="num" id="stat-class-b">0</div><div class="foot" id="stat-class-b-pct">0% of all cases</div></div>
         </div>
-        <div class="stat-card clickable" id="class-card-c" data-class="Class C">
-          <div class="label">Class C Offenses</div><div class="num" id="stat-class-c">0</div><div class="foot" id="stat-class-c-pct">0% of all cases</div>
+        <div class="stat-card icon-card offense class-c clickable" id="class-card-c" data-class="Class C">
+          <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 15.5l4-4M9 8l7 7M14.5 3.5l6 6-3 3-6-6z"/><path d="M3.5 20.5l4-4"/></svg></div>
+          <div class="stat-body"><div class="label">Class C Offenses</div><div class="num" id="stat-class-c">0</div><div class="foot" id="stat-class-c-pct">0% of all cases</div></div>
         </div>
       </div>
 
@@ -140,10 +167,21 @@
         <div class="panel">
           <h3>Headcount by Department</h3>
           <div id="dept-breakdown"></div>
+          <button class="view-all-btn" id="dept-view-all-btn" type="button">
+            View all departments
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
         </div>
         <div class="panel">
-          <h3>Recent Case Activity</h3>
+          <div class="panel-head-row">
+            <h3>Recent Case Activity</h3>
+            <button class="btn ghost btn-compact" id="recent-view-all-top" type="button">View all cases</button>
+          </div>
           <div id="recent-cases"></div>
+          <button class="view-all-btn" id="recent-view-all-bottom" type="button">
+            View all cases
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
         </div>
       </div>
 
@@ -1020,6 +1058,14 @@ function fmtDate(d){
   if(isNaN(dt)) return d;
   return dt.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
 }
+function initials(name){
+  if(!name) return '—';
+  const [last, rest] = name.split(',').map(s=>s.trim());
+  const first = (rest||'').split(' ')[0] || '';
+  const a = (last||'').charAt(0);
+  const b = first.charAt(0);
+  return (a+b).toUpperCase() || '—';
+}
 function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1599,11 +1645,15 @@ function renderDashboard(){
   } else {
     recentWrap.innerHTML = CASES.slice(0,6).map(c=>`
       <div class="mini-case">
-        <div class="top">
-          <span class="who">${escapeHtml(c.empName)}</span>
-          <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
+        <div class="avatar">${initials(c.empName)}</div>
+        <div class="mini-case-body">
+          <div class="top">
+            <span class="who">${escapeHtml(c.empName)}</span>
+            <span class="badge ${statusClass(c.status)}">${escapeHtml(c.status)}</span>
+          </div>
+          <div class="what">${escapeHtml(c.violation)} · Case #${escapeHtml(c.caseId)}</div>
+          <div class="meta">${fmtDate(c.incidentDate)} · By ${escapeHtml(c.recordedBy||'—')}</div>
         </div>
-        <div class="what">${escapeHtml(c.violation)} · ${fmtDate(c.incidentDate)}</div>
       </div>
     `).join('');
   }
@@ -1686,13 +1736,21 @@ document.getElementById('dept-violations').addEventListener('click', (ev)=>{
 // ---------- Dashboard violation search ----------
 const dashSearchInput = document.getElementById('dash-viol-search');
 const dashSearchResults = document.getElementById('dash-search-results');
-dashSearchInput.addEventListener('input', ()=>{
+const dashFiltersMenu = document.getElementById('dash-filters-menu');
+const dashStatusChecks = Array.from(dashFiltersMenu.querySelectorAll('input[type=checkbox]'));
+function activeDashStatuses(){
+  return dashStatusChecks.filter(c=>c.checked).map(c=>c.value);
+}
+function runDashSearch(){
   const q = dashSearchInput.value.trim().toLowerCase();
   if(q.length===0){ dashSearchResults.classList.remove('show'); dashSearchResults.innerHTML=''; return; }
+  const activeStatuses = activeDashStatuses();
   const matches = CASES.filter(c=>
-    c.empName.toLowerCase().includes(q) ||
-    (c.caseId||'').toLowerCase().includes(q) ||
-    (c.violation||'').toLowerCase().includes(q)
+    activeStatuses.includes(c.status) && (
+      c.empName.toLowerCase().includes(q) ||
+      (c.caseId||'').toLowerCase().includes(q) ||
+      (c.violation||'').toLowerCase().includes(q)
+    )
   ).slice(0,10);
   dashSearchResults.innerHTML = matches.length===0
     ? `<div class="sr-empty">No matching violations.</div>`
@@ -1706,16 +1764,26 @@ dashSearchInput.addEventListener('input', ()=>{
         </div>
       `).join('');
   dashSearchResults.classList.add('show');
-});
+}
+dashSearchInput.addEventListener('input', runDashSearch);
+dashStatusChecks.forEach(chk=> chk.addEventListener('change', runDashSearch));
 dashSearchResults.addEventListener('click', (ev)=>{
   const item = ev.target.closest('.sr-item');
   if(!item) return;
   dashSearchResults.classList.remove('show');
   openCaseStatusModal(item.dataset.caseid);
 });
+document.getElementById('dash-filters-btn').addEventListener('click', (ev)=>{
+  ev.stopPropagation();
+  dashFiltersMenu.classList.toggle('show');
+});
 document.addEventListener('click', (ev)=>{
   if(!document.getElementById('dash-search-wrap').contains(ev.target)) dashSearchResults.classList.remove('show');
+  if(!document.getElementById('dash-filters-dropdown').contains(ev.target)) dashFiltersMenu.classList.remove('show');
 });
+document.getElementById('dept-view-all-btn').addEventListener('click', ()=> activateSubview('employees'));
+document.getElementById('recent-view-all-top').addEventListener('click', ()=> activateSubview('cases'));
+document.getElementById('recent-view-all-bottom').addEventListener('click', ()=> activateSubview('cases'));
 
 // ---------- Add Employee modal ----------
 const empModalOverlay = document.getElementById('emp-modal-overlay');
