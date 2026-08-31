@@ -174,7 +174,7 @@
     position:absolute; left:16px; top:50%; transform:translateY(-50%);
     width:17px; height:17px; color:var(--gray-light); pointer-events:none;
   }
-  .search-with-icon input{
+  .dash-search-row .search-with-icon input[type=text]{
     height:44px; padding:0 16px 0 42px; border-radius:12px; font-size:var(--text-sm);
   }
   .filters-dropdown{ position:relative; flex-shrink:0; }
