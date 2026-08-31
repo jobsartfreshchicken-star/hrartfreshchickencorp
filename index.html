@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260831a">
+<link rel="stylesheet" href="styles.css?v=20260831b">
 </head>
 <body>
 <div class="app">
@@ -173,10 +173,7 @@
           </button>
         </div>
         <div class="panel">
-          <div class="panel-head-row">
-            <h3>Recent Case Activity</h3>
-            <button class="btn ghost btn-compact" id="recent-view-all-top" type="button">View all cases</button>
-          </div>
+          <h3>Recent Case Activity</h3>
           <div id="recent-cases"></div>
           <button class="view-all-btn" id="recent-view-all-bottom" type="button">
             View all cases
@@ -1782,7 +1779,6 @@ document.addEventListener('click', (ev)=>{
   if(!document.getElementById('dash-filters-dropdown').contains(ev.target)) dashFiltersMenu.classList.remove('show');
 });
 document.getElementById('dept-view-all-btn').addEventListener('click', ()=> activateSubview('employees'));
-document.getElementById('recent-view-all-top').addEventListener('click', ()=> activateSubview('cases'));
 document.getElementById('recent-view-all-bottom').addEventListener('click', ()=> activateSubview('cases'));
 
 // ---------- Add Employee modal ----------
