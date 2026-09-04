@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apply | Art Fresh Chicken Corp.</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{ background:var(--paper-dim); }
+  .apply-wrap{ max-width:920px; margin:0 auto; padding:36px 18px 70px; }
+  .apply-head{ text-align:center; margin-bottom:26px; }
+  .apply-head img{ height:52px; margin-bottom:10px; }
+  .apply-head h1{ font-size:var(--text-2xl); margin:0 0 4px; letter-spacing:-0.02em; }
+  .apply-head p{ color:var(--gray); font-size:var(--text-sm); margin:0; }
+  .apply-panel{ margin-bottom:16px; }
+  .apply-panel h3{ font-size:var(--text-lg); }
+  .apply-state{ text-align:center; padding:70px 20px; }
+  .apply-state svg{ width:46px; height:46px; color:var(--gray-light); margin-bottom:14px; }
+  .apply-state h2{ font-size:var(--text-xl); margin:0 0 8px; }
+  .apply-state p{ color:var(--gray); font-size:var(--text-sm); max-width:420px; margin:0 auto; }
+  .row-block{ border:1px solid var(--line); border-radius:10px; padding:14px 14px 4px; margin-bottom:12px; }
+  .row-block-label{ font-weight:700; font-size:var(--text-sm); color:var(--ink); margin-bottom:10px; }
+  .cond-field{ display:none; }
+  .cond-field.show{ display:block; }
+  .certify-row{ display:flex; align-items:flex-start; gap:10px; font-size:var(--text-sm); color:var(--ink-soft); line-height:1.5; }
+  .certify-row input{ width:auto; margin-top:3px; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="apply-wrap">
+  <div class="apply-head">
+    <img src="assets/logo.png" alt="Art Fresh Chicken Corp.">
+    <h1>Application Form</h1>
+    <p>Art Fresh Chicken Corp. — Employment Application</p>
+  </div>
+
+  <div id="state-loading" class="apply-state">
+    <p>Checking your link…</p>
+  </div>
+
+  <div id="state-unavailable" class="apply-state" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+    <h2>This link isn't available</h2>
+    <p>It may have already been used, or the link is incorrect or incomplete. Please contact HR for a new invite.</p>
+  </div>
+
+  <div id="state-done" class="apply-state" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6L9 17l-5-5"/></svg>
+    <h2>Application submitted</h2>
+    <p>Thank you! HR will review your application and get in touch if shortlisted.</p>
+  </div>
+
+  <form id="apply-form" hidden></form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = 'https://tpmacerqyugykdlzftml.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_NhbzVvLT4rEzjzjfo-Gjcg_Cj5Uy9uY';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+</script>
+
+<script>
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ---------- small field builders ----------
+function f(label, id, type, opts){
+  opts = opts || {};
+  const full = opts.full ? ' full' : '';
+  if(type === 'select'){
+    return `<div class="field${full}"><label>${label}</label>
+      <select id="${id}">
+        <option value="">Select…</option>
+        ${opts.options.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+      </select></div>`;
+  }
+  if(type === 'textarea'){
+    return `<div class="field full"><label>${label}</label><textarea id="${id}" placeholder="${escapeHtml(opts.placeholder||'')}"></textarea></div>`;
+  }
+  return `<div class="field${full}"><label>${label}</label><input type="${type}" id="${id}" placeholder="${escapeHtml(opts.placeholder||'')}"></div>`;
+}
+const YESNO = ['Yes','No'];
+
+// ---------- section builders ----------
+function sectionPosition(){
+  return `
+    <div class="panel apply-panel">
+      <h3>Position</h3>
+      <div class="form-grid">
+        ${f('Position Applied For','pos_position','text',{full:true})}
+        ${f('Referred By','pos_referredby','text')}
+        ${f('Desired Salary','pos_salary','text')}
+      </div>
+    </div>`;
+}
+
+function sectionPersonal(){
+  return `
+    <div class="panel apply-panel">
+      <h3>I. Personal Data</h3>
+      <div class="form-grid">
+        ${f('Last Name','pd_lastname','text')}
+        ${f('First Name','pd_firstname','text')}
+        ${f('Middle Name','pd_middlename','text')}
+        ${f('Nickname','pd_nickname','text')}
+        ${f('Present Address','pd_presentaddr','text',{full:true})}
+        ${f('Mobile No.','pd_mobile','tel')}
+        ${f('Permanent Address','pd_permaddr','text',{full:true})}
+        ${f('Landline No.','pd_landline','tel')}
+        ${f('Province','pd_province','text')}
+        ${f('Years at Permanent Address','pd_yearsatperm','number')}
+        ${f('Birthdate','pd_birthdate','date')}
+        ${f('Birthplace','pd_birthplace','text')}
+        ${f('FB Account','pd_fb','text')}
+        ${f('Civil Status','pd_civilstatus','select',{options:['Single','Married','Widowed','Separated']})}
+        ${f('Citizenship','pd_citizenship','text')}
+        ${f('Email Address','pd_email','email')}
+        ${f('Religion','pd_religion','text')}
+        <div class="field"></div>
+        <div id="spouse-fields" style="display:none;">
+          ${f('Wedding Date','pd_weddingdate','date')}
+          ${f('Name of Spouse','pd_spousename','text')}
+          ${f('Spouse Birthdate','pd_spousebirthdate','date')}
+          ${f('Occupation of Spouse','pd_spouseoccupation','text')}
+          ${f('No. of Children','pd_numchildren','number')}
+        </div>
+        ${f("Gov't License Taken",'pd_govlicense','text')}
+        ${f('SSS No.','pd_sss','text')}
+        ${f('TIN No.','pd_tin','text')}
+        ${f('Tax Status','pd_taxstatus','select',{options:['Single','Married','Head of Family']})}
+        ${f('PAG-IBIG No.','pd_pagibig','text')}
+        ${f('PhilHealth No.','pd_philhealth','text')}
+      </div>
+    </div>`;
+}
+
+function sectionEmergency(){
+  let rows = '';
+  for(let i=1; i<=2; i++){
+    rows += `
+      <div class="row-block">
+        <div class="row-block-label">Contact ${i}</div>
+        <div class="form-grid">
+          ${f('Name','em'+i+'_name','text')}
+          ${f('Relationship','em'+i+'_relationship','text')}
+          ${f('Address','em'+i+'_address','text')}
+          ${f('Contact No.','em'+i+'_contact','tel')}
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="panel apply-panel">
+      <h3>II. In Case of Emergency</h3>
+      ${rows}
+    </div>`;
+}
+
+function sectionEducation(){
+  const levels = [['elem','Elementary'],['sec','Secondary'],['col','College'],['grad','Graduate School'],['voc','Vocational']];
+  let rows = '';
+  levels.forEach(([key,label])=>{
+    rows += `
+      <div class="row-block">
+        <div class="row-block-label">${label}</div>
+        <div class="form-grid">
+          ${f('Name of School','edu_'+key+'_school','text',{full:true})}
+          ${f('From (year)','edu_'+key+'_from','number')}
+          ${f('To (year)','edu_'+key+'_to','number')}
+          ${f('Course / Degree / Awards','edu_'+key+'_course','text',{full:true})}
+        </div>
+      </div>`;
+  });
+  return `
+    <div class="panel apply-panel">
+      <h3>III. Educational Attainment</h3>
+      ${rows}
+    </div>`;
+}
+
+function sectionEmployment(){
+  let rows = '';
+  for(let i=1; i<=2; i++){
+    rows += `
+      <div class="row-block">
+        <div class="row-block-label">${i===1?'Most Recent Employer':'Previous Employer'}</div>
+        <div class="form-grid">
+          ${f('Company','emp'+i+'_company','text')}
+          ${f('Tel No.','emp'+i+'_tel','tel')}
+          ${f('Address','emp'+i+'_address','text',{full:true})}
+          ${f('Position','emp'+i+'_position','text')}
+          ${f('Salary','emp'+i+'_salary','text')}
+          ${f('From','emp'+i+'_from','date')}
+          ${f('To','emp'+i+'_to','date')}
+          ${f('Immediate Superior','emp'+i+'_superior','text')}
+          ${f('Reason for Leaving','emp'+i+'_reason','select',{options:['End of Probationary Contract','Resigned','Terminated','AWOL','Not Applicable']})}
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="panel apply-panel">
+      <h3>IV. Employment Record (Most Recent First)</h3>
+      ${rows}
+    </div>`;
+}
+
+function sectionFamily(){
+  let childRows = '', siblingRows = '';
+  for(let i=1; i<=3; i++){
+    childRows += `<div class="form-grid" style="margin-bottom:8px;">
+      ${f('Name','child'+i+'_name','text')}
+      ${f('Birthdate','child'+i+'_birthdate','date')}
+      ${f('Occupation','child'+i+'_occupation','text')}
+      ${f('School / Company','child'+i+'_school','text')}
+    </div>`;
+    siblingRows += `<div class="form-grid" style="margin-bottom:8px;">
+      ${f('Name','sib'+i+'_name','text')}
+      ${f('Birthdate','sib'+i+'_birthdate','date')}
+      ${f('Occupation','sib'+i+'_occupation','text')}
+      ${f('Company / School','sib'+i+'_school','text')}
+    </div>`;
+  }
+  return `
+    <div class="panel apply-panel">
+      <h3>V. Family Background</h3>
+      <div class="row-block">
+        <div class="row-block-label">Father</div>
+        <div class="form-grid">
+          ${f("Father's Name",'fam_fathername','text')}
+          ${f('Birthdate','fam_fatherbirthdate','date')}
+          ${f('Occupation','fam_fatheroccupation','text')}
+          ${f('Company','fam_fathercompany','text')}
+          ${f('Home Address','fam_fatheraddress','text',{full:true})}
+        </div>
+      </div>
+      <div class="row-block">
+        <div class="row-block-label">Mother</div>
+        <div class="form-grid">
+          ${f("Mother's Maiden Name",'fam_mothername','text')}
+          ${f('Birthdate','fam_motherbirthdate','date')}
+          ${f('Occupation','fam_motheroccupation','text')}
+          ${f('Company','fam_mothercompany','text')}
+          ${f('Home Address','fam_motheraddress','text',{full:true})}
+        </div>
+      </div>
+      <div class="row-block">
+        <div class="row-block-label">Children (if any)</div>
+        ${childRows}
+      </div>
+      <div class="row-block">
+        <div class="row-block-label">Brothers / Sisters (if any)</div>
+        ${siblingRows}
+      </div>
+    </div>`;
+}
+
+const ADDITIONAL_QUESTIONS = [
+  {id:'q1', text:'Is there an open investigation/warrant against you?'},
+  {id:'q2', text:'Have you ever been convicted of misdemeanor or crime?'},
+  {id:'q3', text:'Are you in good physical condition?'},
+  {id:'q4', text:'Do you have relatives working with this company?', detail:'Name/s'},
+  {id:'q5', text:'Do you have any friends working with this company?', detail:'Name/s'},
+  {id:'q6', text:'Have you been abroad?'},
+  {id:'q7', text:'Do you have pending applications abroad?'},
+  {id:'q8', text:'Do you have pending applications with another company?', detail:'What company? What position?'},
+  {id:'q9', text:'Are you willing to work any day/time?'},
+  {id:'q10', text:'Are you willing to render overtime work?'},
+  {id:'q11', text:'Are you willing to accept provincial assignments?'},
+  {id:'q12', text:'Are you willing to accept overseas travels and assignments?'},
+  {id:'q13', text:'Are you willing to be rotated?'},
+  {id:'q14', text:'Do you have outstanding loans with the government or any banking or lending institution?', detail:'Please provide details'}
+];
+
+function sectionAdditional(){
+  const rows = ADDITIONAL_QUESTIONS.map((q,i)=>`
+    <div class="row-block">
+      <div class="form-grid">
+        <div class="field full" style="margin-bottom:0;">
+          <label style="text-transform:none; font-weight:600; font-size:var(--text-sm); color:var(--ink-soft); letter-spacing:0;">${i+1}. ${escapeHtml(q.text)}</label>
+        </div>
+        ${f('Answer','aq_'+q.id,'select',{options:YESNO})}
+        ${q.detail ? `<div class="cond-field field" id="aq_${q.id}_detail_wrap"><label>${escapeHtml(q.detail)}</label><input type="text" id="aq_${q.id}_detail"></div>` : ''}
+      </div>
+    </div>`).join('');
+  return `
+    <div class="panel apply-panel">
+      <h3>VI. Additional Information</h3>
+      ${rows}
+      ${f('List up to 5 additional skills or knowledge (e.g., Vulcanizing, Mental Math)','aq_skills','textarea',{placeholder:'e.g., Vulcanizing, Mental Math'})}
+    </div>`;
+}
+
+function sectionReferences(){
+  let rows = '';
+  for(let i=1; i<=3; i++){
+    rows += `<div class="form-grid" style="margin-bottom:8px;">
+      ${f('Name','ref'+i+'_name','text')}
+      ${f('Occupation','ref'+i+'_occupation','text')}
+      ${f('Company','ref'+i+'_company','text')}
+      ${f('Address','ref'+i+'_address','text')}
+      ${f('Contact No.','ref'+i+'_contact','tel')}
+    </div>`;
+  }
+  return `
+    <div class="panel apply-panel">
+      <h3>VII. Character References</h3>
+      ${rows}
+    </div>`;
+}
+
+function sectionCertification(){
+  return `
+    <div class="panel apply-panel">
+      <h3>Certification</h3>
+      <label class="certify-row">
+        <input type="checkbox" id="certify-check">
+        <span>I certify that the information I have given in this application is true and correct, and I understand that any false statement may be sufficient cause for dismissal if discovered after employment. I authorize Art Fresh Chicken Corp. and its affiliates to verify any information regarding myself.</span>
+      </label>
+      <div class="form-grid" style="margin-top:14px;">
+        ${f('Signature Over Printed Name (type your full name)','cert_name','text',{full:true})}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn" id="apply-submit-btn">Submit Application</button>
+    </div>`;
+}
+
+function buildForm(){
+  const form = document.getElementById('apply-form');
+  form.innerHTML = sectionPosition() + sectionPersonal() + sectionEmergency() + sectionEducation()
+    + sectionEmployment() + sectionFamily() + sectionAdditional() + sectionReferences() + sectionCertification();
+
+  // spouse-fields wraps several .field grid items, so it needs display:contents
+  // (not the .cond-field/.show block toggle used elsewhere) to stay part of
+  // the surrounding .form-grid layout instead of breaking onto its own row.
+  const civilStatusSel = document.getElementById('pd_civilstatus');
+  const spouseFields = document.getElementById('spouse-fields');
+  civilStatusSel.addEventListener('change', ()=>{
+    spouseFields.style.display = civilStatusSel.value === 'Married' ? 'contents' : 'none';
+  });
+  spouseFields.style.display = 'none';
+
+  ADDITIONAL_QUESTIONS.filter(q=>q.detail).forEach(q=>{
+    const sel = document.getElementById('aq_'+q.id);
+    const wrap = document.getElementById('aq_'+q.id+'_detail_wrap');
+    sel.addEventListener('change', ()=> wrap.classList.toggle('show', sel.value === 'Yes'));
+  });
+
+  document.getElementById('apply-submit-btn').addEventListener('click', submitApplication);
+}
+
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function collectFormData(){
+  const data = {
+    position: { position: val('pos_position'), referredBy: val('pos_referredby'), desiredSalary: val('pos_salary') },
+    personal: {
+      lastName: val('pd_lastname'), firstName: val('pd_firstname'), middleName: val('pd_middlename'), nickname: val('pd_nickname'),
+      presentAddress: val('pd_presentaddr'), mobile: val('pd_mobile'),
+      permanentAddress: val('pd_permaddr'), landline: val('pd_landline'),
+      province: val('pd_province'), yearsAtPermanent: val('pd_yearsatperm'),
+      birthdate: val('pd_birthdate'), birthplace: val('pd_birthplace'), fbAccount: val('pd_fb'),
+      civilStatus: val('pd_civilstatus'), citizenship: val('pd_citizenship'), email: val('pd_email'), religion: val('pd_religion'),
+      weddingDate: val('pd_weddingdate'), spouseName: val('pd_spousename'), spouseBirthdate: val('pd_spousebirthdate'),
+      spouseOccupation: val('pd_spouseoccupation'), numChildren: val('pd_numchildren'),
+      govLicense: val('pd_govlicense'), sss: val('pd_sss'), tin: val('pd_tin'), taxStatus: val('pd_taxstatus'),
+      pagibig: val('pd_pagibig'), philhealth: val('pd_philhealth')
+    },
+    emergencyContacts: [1,2].map(i => ({
+      name: val('em'+i+'_name'), relationship: val('em'+i+'_relationship'), address: val('em'+i+'_address'), contact: val('em'+i+'_contact')
+    })),
+    education: [['elem','Elementary'],['sec','Secondary'],['col','College'],['grad','Graduate School'],['voc','Vocational']].map(([key,label]) => ({
+      level: label, school: val('edu_'+key+'_school'), from: val('edu_'+key+'_from'), to: val('edu_'+key+'_to'), course: val('edu_'+key+'_course')
+    })),
+    employment: [1,2].map(i => ({
+      company: val('emp'+i+'_company'), tel: val('emp'+i+'_tel'), address: val('emp'+i+'_address'),
+      position: val('emp'+i+'_position'), salary: val('emp'+i+'_salary'), from: val('emp'+i+'_from'), to: val('emp'+i+'_to'),
+      superior: val('emp'+i+'_superior'), reasonForLeaving: val('emp'+i+'_reason')
+    })),
+    family: {
+      father: { name: val('fam_fathername'), birthdate: val('fam_fatherbirthdate'), occupation: val('fam_fatheroccupation'), company: val('fam_fathercompany'), address: val('fam_fatheraddress') },
+      mother: { name: val('fam_mothername'), birthdate: val('fam_motherbirthdate'), occupation: val('fam_motheroccupation'), company: val('fam_mothercompany'), address: val('fam_motheraddress') },
+      children: [1,2,3].map(i => ({ name: val('child'+i+'_name'), birthdate: val('child'+i+'_birthdate'), occupation: val('child'+i+'_occupation'), school: val('child'+i+'_school') })),
+      siblings: [1,2,3].map(i => ({ name: val('sib'+i+'_name'), birthdate: val('sib'+i+'_birthdate'), occupation: val('sib'+i+'_occupation'), school: val('sib'+i+'_school') }))
+    },
+    additionalInfo: ADDITIONAL_QUESTIONS.map(q => ({
+      question: q.text, answer: val('aq_'+q.id), detail: q.detail ? val('aq_'+q.id+'_detail') : undefined
+    })),
+    additionalSkills: val('aq_skills'),
+    characterReferences: [1,2,3].map(i => ({
+      name: val('ref'+i+'_name'), occupation: val('ref'+i+'_occupation'), company: val('ref'+i+'_company'), address: val('ref'+i+'_address'), contact: val('ref'+i+'_contact')
+    })),
+    certification: { name: val('cert_name'), certifiedAt: new Date().toISOString() }
+  };
+  return data;
+}
+
+async function submitApplication(){
+  const lastName = val('pd_lastname'), firstName = val('pd_firstname'), mobile = val('pd_mobile');
+  const position = val('pos_position');
+  const certified = document.getElementById('certify-check').checked;
+  const certName = val('cert_name');
+  if(!lastName || !firstName){ toast('Please enter your last and first name.'); return; }
+  if(!position){ toast('Please enter the position you are applying for.'); return; }
+  if(!mobile){ toast('Please enter a mobile number.'); return; }
+  if(!certified || !certName){ toast('Please check the certification and type your name to sign.'); return; }
+
+  const btn = document.getElementById('apply-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  try{
+    const { error } = await supabaseClient.rpc('submit_application', {
+      p_token: CURRENT_TOKEN,
+      p_data: collectFormData()
+    });
+    if(error){
+      console.error('submit_application error:', error);
+      showState('unavailable');
+      return;
+    }
+    showState('done');
+  }catch(e){
+    console.error('submitApplication failed:', e);
+    toast('Something went wrong. Please try again.');
+    btn.disabled = false;
+    btn.textContent = 'Submit Application';
+  }
+}
+
+// ---------- token check ----------
+let CURRENT_TOKEN = '';
+function showState(name){
+  ['loading','unavailable','done'].forEach(s => document.getElementById('state-'+s).hidden = (s !== name));
+  document.getElementById('apply-form').hidden = (name !== 'form');
+}
+
+(async function init(){
+  const params = new URLSearchParams(location.search);
+  CURRENT_TOKEN = (params.get('token') || '').trim();
+  if(!CURRENT_TOKEN){ showState('unavailable'); return; }
+
+  try{
+    const { data, error } = await supabaseClient
+      .from('application_invites')
+      .select('status')
+      .eq('token', CURRENT_TOKEN)
+      .maybeSingle();
+
+    if(error || !data || data.status !== 'pending'){
+      showState('unavailable');
+      return;
+    }
+
+    buildForm();
+    showState('form');
+  }catch(e){
+    console.error('token check failed:', e);
+    showState('unavailable');
+  }
+})();
+</script>
+</body>
+</html>
